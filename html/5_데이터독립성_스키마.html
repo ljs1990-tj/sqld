@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목: 데이터 독립성과 3단계 스키마 구조</title>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --text-main: #2c3e50;
+            --text-muted: #596275;
+            
+            /* 테마 컬러 */
+            --theme-shield: #3498db;  /* 방패/독립성 */
+            --theme-layer: #9b59b6;   /* 층/스키마 */
+            --theme-draw: #e67e22;    /* 그림/ERD */
+            --theme-alert: #e74c3c;   /* 기출포인트 */
+            
+            --box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 50px;
+            border-radius: 15px;
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            color: var(--text-main);
+            border-bottom: 3px solid #dfe6e9;
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.7rem;
+            margin-top: 50px;
+            display: flex;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 2px solid;
+        }
+
+        .title-shield { color: var(--theme-shield); border-color: var(--theme-shield); }
+        .title-layer { color: var(--theme-layer); border-color: var(--theme-layer); }
+        .title-draw { color: var(--theme-draw); border-color: var(--theme-draw); }
+
+        /* 카드 공통 스타일 */
+        .content-card {
+            background: #ffffff;
+            border: 1px solid #eeeeee;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        /* 3단계 스키마 레이어 디자인 */
+        .schema-layer {
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 6px solid;
+            position: relative;
+        }
+        
+        .schema-external { background: #fdf2e9; border-color: #e67e22; }
+        .schema-conceptual { background: #f4ecf7; border-color: #9b59b6; }
+        .schema-internal { background: #eaf2f8; border-color: #3498db; }
+
+        .schema-layer h3 {
+            margin-top: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .schema-badge {
+            font-size: 0.85rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            color: white;
+            background: var(--text-main);
+        }
+
+        /* 비유 & Add-on 박스 */
+        .analogy-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #1abc9c;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+        }
+
+        .addon-box {
+            background: linear-gradient(to right, #fff9e6, #ffffff);
+            border: 1px solid #fdebd0;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .addon-box h4 {
+            color: #d35400;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+        .addon-box h4::before { content: "💡"; margin-right: 8px; }
+
+        /* 기출 포인트 박스 */
+        .exam-box {
+            background: var(--text-main);
+            color: white;
+            padding: 35px;
+            border-radius: 15px;
+            margin-top: 60px;
+            box-shadow: 0 10px 25px rgba(44, 62, 80, 0.3);
+        }
+
+        .exam-box h2 {
+            color: #f1c40f;
+            text-align: center;
+            margin-top: 0;
+            border-bottom: 1px dashed rgba(255,255,255,0.2);
+            padding-bottom: 20px;
+        }
+
+        .flashcard {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .flashcard-q { flex: 2; padding-right: 20px; }
+        .flashcard-a { 
+            flex: 1; 
+            text-align: right; 
+            color: #f1c40f; 
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* 텍스트 강조 */
+        strong { color: var(--theme-alert); }
+        .hl { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #ffeaa7 40%); color: #2c3e50; font-weight: bold; }
+        ul { padding-left: 20px; }
+        li { margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📖 1과목 핵심 요약: 데이터 독립성과 3단계 스키마 구조</h1>
+
+    <h2 class="section-title title-shield">1. 🛡️ 데이터 독립성: "충격 흡수 장치"</h2>
+    <div class="content-card">
+        <p>건물의 1층 인테리어를 바꾼다고 해서 2층 바닥이 무너지면 안 되듯, <strong>하위 단계를 수정하더라도 상위 단계 프로그램이 고장 나지 않도록 방어하는 성질</strong>을 '데이터 독립성'이라고 합니다.</p>
+        
+        <ul>
+            <li>
+                <span class="hl">① 논리적 독립성 (개념 스키마 ↔ 외부 스키마 방어)</span>
+                <ul>
+                    <li><strong>상황:</strong> DBA가 학교 시스템에 '기숙사'라는 새로운 테이블(구조)을 추가하거나 기존 구조를 변경했습니다.</li>
+                    <li><strong>효과:</strong> 구조가 바뀌어도 학생들이 로그인해서 보는 '웹 수강신청 화면(응용프로그램)'은 전혀 에러 없이 정상 작동합니다.</li>
+                </ul>
+            </li>
+            <li style="margin-top: 15px;">
+                <span class="hl">② 물리적 독립성 (내부 스키마 ↔ 개념 스키마 방어)</span>
+                <ul>
+                    <li><strong>상황:</strong> 학교 서버실의 구형 하드디스크를 최신형 SSD로 교체하거나 데이터 저장 위치를 바꿨습니다.</li>
+                    <li><strong>효과:</strong> 물리적인 저장 장치가 바뀌어도, DBA가 짜놓은 테이블 설계도(개념 스키마)나 학생들의 수강신청 화면에는 아무런 영향이 없습니다.</li>
+                </ul>
+            </li>
+        </ul>
+
+        <div class="addon-box">
+            <h4>실무 Add-on & 시험 단골 출제: "사상(Mapping, 매핑)"</h4>
+            <p>이러한 독립성이 유지되는 비결은 각 층 사이에 존재하는 <strong>'사상(Mapping, 연결고리)'</strong> 덕분입니다. 시험에 자주 나오니 짝꿍을 꼭 외워두세요!</p>
+            <ul>
+                <li><strong>논리적 사상 (외부적/개념적 사상):</strong> 외부 스키마와 개념 스키마를 연결. (논리적 독립성 보장)</li>
+                <li><strong>물리적 사상 (개념적/내부적 사상):</strong> 개념 스키마와 내부 스키마를 연결. (물리적 독립성 보장)</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 class="section-title title-layer">2. 🏢 데이터베이스 3단계 구조 (3-Schema)</h2>
+    <p>데이터 독립성을 지키기 위해 ANSI(미국국립표준협회)에서 데이터베이스를 바라보는 관점을 3개의 층으로 쪼개 놓은 것입니다. <em>(※ 스키마 = 데이터베이스의 뼈대/설계도)</em></p>
+    
+    <div class="content-card">
+        <div class="schema-layer schema-external">
+            <h3>① 외부 스키마 (External Schema) <span class="schema-badge">여러 개 존재</span></h3>
+            <p><strong>"사용자 관점"</strong></p>
+            <div class="analogy-box">
+                🎓 <strong>비유:</strong> 학생들이 스마트폰으로 보는 <strong>[내 수강 시간표]</strong> 화면, 또는 교수님이 보는 <strong>[내 수업 출석부]</strong> 화면입니다.
+            </div>
+            <p><strong>특징:</strong> 전체 DB 중 사용자에게 필요한 아주 일부분만 보여줍니다. 보는 사람에 따라 뷰(View)가 다르기 때문에 시스템 내에 <strong>여러 개</strong>가 존재합니다.</p>
+        </div>
+
+        <div class="schema-layer schema-conceptual">
+            <h3>② 개념 스키마 (Conceptual Schema) <span class="schema-badge">단 1개 존재</span></h3>
+            <p><strong>"DBA/통합 관점"</strong></p>
+            <div class="analogy-box">
+                🎓 <strong>비유:</strong> 총장님과 DBA가 가지고 있는 <strong>'학교 전체 데이터의 마스터 설계도'</strong>입니다.
+            </div>
+            <p><strong>특징:</strong> 학생, 과목, 수강내역 등 모든 테이블과 규칙이 다 모여있는 거대한 전체 밑그림입니다. DB 전체에 <strong>단 1개</strong>만 존재하며, 보통 실무에서 "스키마 짰어?"라고 할 때 이 개념 스키마(ERD)를 말합니다.</p>
+        </div>
+
+        <div class="schema-layer schema-internal">
+            <h3>③ 내부 스키마 (Internal Schema) <span class="schema-badge">단 1개 존재</span></h3>
+            <p><strong>"시스템/물리적 관점"</strong></p>
+            <div class="analogy-box">
+                🎓 <strong>비유:</strong> 서버실 엔지니어가 쳐다보는 <strong>'0과 1, 그리고 하드디스크 디렉토리'</strong>입니다.
+            </div>
+            <p><strong>특징:</strong> 데이터가 실제로 컴퓨터 하드웨어의 어느 구역에, 어떤 크기로, 어떻게 저장될지, 인덱스는 어떻게 걸려있는지를 다루는 가장 밑바닥 물리적 단계입니다.</p>
+        </div>
+    </div>
+
+    <h2 class="section-title title-draw">3. 🎨 데이터 모델의 표기법 (ERD)</h2>
+    <div class="content-card">
+        <p>"학생이 과목을 수강한다"는 업무 규칙을 전 세계 공통의 그림(ERD)으로 그리는 방법입니다.</p>
+        
+        <ul>
+            <li>
+                <span class="hl">① Chen (첸) 표기법</span>
+                <p><strong>특징:</strong> 관계를 마름모(◇)로 표현합니다. 최초의 표기법이지만 실무에서는 거의 쓰지 않고 대학교 이론이나 시험에서만 다룹니다.<br>
+                🎓 <strong>비유:</strong> <code>[학생] ── ◇수강한다◇ ── [과목]</code></p>
+            </li>
+            
+            <li>
+                <span class="hl">② 🌟 IE / Crow's Foot (까마귀 발) 표기법</span>
+                <p><strong>특징:</strong> 현재 실무와 SQLD 시험에서 <strong>가장 압도적으로 많이 쓰이는 표준 표기법</strong>입니다. 데이터가 여러 개(Many) 연결될 수 있는 쪽에 <strong>'까마귀 발(삼지창)'</strong> 모양을 그립니다.<br>
+                🎓 <strong>비유:</strong> 1명의 학생은 '여러 개'의 수강내역을 가질 수 있습니다. 따라서 <code>학생</code> 쪽은 작대기 하나(<code>|</code>)를 긋고, <code>수강내역</code> 쪽에는 까마귀 발(<code>∈</code>)을 그립니다.<br>
+                <strong>표현:</strong> <code>[학생] ───+-----------< [수강내역]</code></p>
+            </li>
+
+            <li>
+                <span class="hl">③ Barker (바커) 표기법</span>
+                <p><strong>특징:</strong> 오라클(Oracle)에서 표준으로 채택하여 사용하는 표기법입니다. IE와 비슷하지만, 속성 앞에 식별자는 <code>#</code>, 필수는 <code>*</code>, 선택은 <code>o</code> 기호를 붙여 아주 직관적으로 표현합니다.</p>
+            </li>
+
+            <li>
+                <span class="hl">④ UML 표기법</span>
+                <p><strong>특징:</strong> 데이터베이스보다는 소프트웨어(객체지향 프로그래밍) 설계에서 주로 쓰는 방식입니다. 표 위에 <code>&lt;&lt;Entity&gt;&gt;</code> 같은 태그를 달아 표현하는 클래스 다이어그램이 대표적입니다.</p>
+            </li>
+        </ul>
+    </div>
+
+    <div class="exam-box">
+        <h2>💡 실전 대비 1초 컷 기출 포인트</h2>
+        <p style="text-align: center; margin-bottom: 25px; opacity: 0.9;">시험장에서는 다음 키워드 매칭만 확인하면 보기에서 바로 정답을 고를 수 있습니다!</p>
+        
+        <div class="flashcard">
+            <div class="flashcard-q">"사용자 관점, 여러 개 존재한다"</div>
+            <div class="flashcard-a">➔ 외부 스키마</div>
+        </div>
+        <div class="flashcard">
+            <div class="flashcard-q">"모든 데이터 구조를 묶은 전체 데이터베이스, DBA 관점"</div>
+            <div class="flashcard-a">➔ 개념 스키마</div>
+        </div>
+        <div class="flashcard">
+            <div class="flashcard-q">"저장 장치 구조 변경이 응용프로그램에 영향을 주지 않는다"</div>
+            <div class="flashcard-a">➔ 물리적 독립성</div>
+        </div>
+        <div class="flashcard">
+            <div class="flashcard-q">"관계의 다(Many)를 나타낼 때 까마귀 발을 쓴다"</div>
+            <div class="flashcard-a">➔ IE 표기법</div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

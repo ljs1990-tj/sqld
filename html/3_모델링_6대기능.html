@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: 데이터 모델링의 6가지 마법(기능)</title>
+    <style>
+        /* 기본 스타일 및 폰트 설정 */
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --bg-color: #f8f9fa;
+            --card-bg: #ffffff;
+            
+            /* 6대 기능별 테마 컬러 */
+            --c1: #3498db; /* 파랑: 가시화 */
+            --c2: #e67e22; /* 주황: 명세화 */
+            --c3: #16a085; /* 청록: 구조화 */
+            --c4: #9b59b6; /* 보라: 문서화 */
+            --c5: #27ae60; /* 초록: 관점 */
+            --c6: #e74c3c; /* 빨강: 표현방법 */
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* 메인 제목 및 설명 */
+        .header-section {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-top: 0;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header-text {
+            font-size: 1.1rem;
+            color: #555;
+            word-break: keep-all;
+        }
+
+        /* 6개의 카드를 담는 그리드 레이아웃 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        /* 개별 카드 스타일 */
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        }
+
+        /* 카드 상단 컬러 바 */
+        .feature-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+        }
+
+        .card-1::before { background-color: var(--c1); }
+        .card-2::before { background-color: var(--c2); }
+        .card-3::before { background-color: var(--c3); }
+        .card-4::before { background-color: var(--c4); }
+        .card-5::before { background-color: var(--c5); }
+        .card-6::before { background-color: var(--c6); }
+
+        .feature-card h2 {
+            font-size: 1.3rem;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-1 h2 { color: var(--c1); }
+        .card-2 h2 { color: var(--c2); }
+        .card-3 h2 { color: var(--c3); }
+        .card-4 h2 { color: var(--c4); }
+        .card-5 h2 { color: var(--c5); }
+        .card-6 h2 { color: var(--c6); }
+
+        .book-text {
+            background-color: #f8f9fa;
+            border-left: 3px solid #bdc3c7;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 15px;
+            font-style: italic;
+        }
+
+        .easy-text {
+            flex-grow: 1;
+            font-size: 1.05rem;
+            margin-bottom: 20px;
+        }
+
+        /* 실무 Add-on 박스 */
+        .addon-box {
+            background-color: #fff9f0;
+            border: 1px solid #fdebd0;
+            border-radius: 6px;
+            padding: 15px;
+            font-size: 0.95rem;
+            color: #d35400;
+        }
+
+        .addon-box strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #e67e22;
+        }
+
+        /* 시험 기출 팁 박스 */
+        .exam-tip-box {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            border-radius: 12px;
+            padding: 35px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .exam-tip-box h2 {
+            color: #f1c40f;
+            margin-top: 0;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .exam-tip-box h2::before {
+            content: "🚨";
+            margin-right: 10px;
+        }
+
+        .mnemonic {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: 5px;
+            color: #f1c40f;
+            background-color: rgba(255,255,255,0.1);
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px dashed #f1c40f;
+        }
+
+        .exam-tip-box p {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+            opacity: 0.9;
+        }
+
+        /* 텍스트 하이라이트 */
+        .highlight { font-weight: 800; }
+        .card-1 .highlight { color: #2980b9; }
+        .card-2 .highlight { color: #d35400; }
+        .card-3 .highlight { color: #117a65; }
+        .card-4 .highlight { color: #8e44ad; }
+        .card-5 .highlight { color: #1e8449; }
+        .card-6 .highlight { color: #c0392b; }
+
+        /* 모바일 대응 */
+        @media (max-width: 768px) {
+            .grid-container { grid-template-columns: 1fr; }
+            h1 { font-size: 1.8rem; }
+            .mnemonic { font-size: 1.5rem; letter-spacing: 2px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header-section">
+        <h1>🛠️ 1과목 심화: 데이터 모델링의 6가지 마법 (기능)</h1>
+        <p class="header-text">데이터 모델링(설계도 그리기)을 제대로 해두면, 프로젝트를 진행할 때 다음과 같은 6가지 엄청난 이점을 얻게 됩니다. 교재의 딱딱한 학술적 표현을 실무자의 언어로 완벽하게 번역해 드립니다.</p>
+    </div>
+
+    <div class="grid-container">
+        
+        <div class="feature-card card-1">
+            <h2>1. 👁️ 가시화 (Visualization)</h2>
+            <div class="book-text">"시스템을 현재 또는 원하는 모습으로 가시화하도록 도와준다."</div>
+            <div class="easy-text">머릿속에만 둥둥 떠다니는 복잡한 수강신청 업무 로직을, 네모 박스와 선(ERD)을 이용해 <span class="highlight">'눈에 보이는 그림'</span>으로 만들어 줍니다. 말로 백 번 설명하는 것보다 그림 한 장 보여주는 게 훨씬 빠르니까요!</div>
+            <div class="addon-box">
+                <strong>💡 실무 Add-on</strong>
+                현업 부서(비개발자)와 IT 부서(개발자) 간의 의사소통 오류를 막아주는 최고의 무기입니다. 그림을 보면서 "여기가 빠졌네요!"라고 직관적으로 소통할 수 있습니다.
+            </div>
+        </div>
+
+        <div class="feature-card card-2">
+            <h2>2. 📝 명세화 (Specification)</h2>
+            <div class="book-text">"시스템의 구조와 행동을 명세화할 수 있게 한다."</div>
+            <div class="easy-text">"학생 성적은 대충 숫자로 넣어~"가 아니라, "성적은 소수점 첫째 자리까지 허용하는 숫자(NUMBER) 타입이며, 빈칸(NULL)을 허용하지 않는다"라고 <span class="highlight">데이터의 크기, 타입, 규칙을 아주 정밀하게 지정(명세)해 주는 기능</span>입니다.</div>
+            <div class="addon-box">
+                <strong>💡 실무 Add-on</strong>
+                PK(기본키), FK(외래키), Not Null 같은 '제약조건'을 모델에 꼼꼼히 명세해 두어야, 나중에 쓰레기 데이터(결함)가 DB에 들어오는 것을 원천 차단할 수 있습니다.
+            </div>
+        </div>
+
+        <div class="feature-card card-3">
+            <h2>3. 🏗️ 구조화된 틀 제공 (Structuring)</h2>
+            <div class="book-text">"시스템을 구축하는 구조화된 틀을 제공한다."</div>
+            <div class="easy-text">찰흙을 빚을 때 안에 철사로 뼈대를 잡아야 무너지지 않듯, 우리가 예쁘게 그려둔 이 데이터 모델(설계도)이 훗날 실제 오라클이나 MySQL 같은 물리적 데이터베이스를 <span class="highlight">생성(CREATE TABLE)할 때 완벽한 뼈대(틀) 역할</span>을 해줍니다.</div>
+            <div class="addon-box">
+                <strong>💡 실무 Add-on</strong>
+                요즘은 모델링 툴(ERwin, DA# 등)이 워낙 좋아서, 모델링만 완벽하게 그려두면 이 뼈대를 바탕으로 실제 DB 생성 스크립트(DDL)를 1초 만에 자동으로 쫙 뽑아줍니다.
+            </div>
+        </div>
+
+        <div class="feature-card card-4">
+            <h2>4. 🗂️ 문서화 (Documentation)</h2>
+            <div class="book-text">"시스템을 문서화한다."</div>
+            <div class="easy-text">시스템을 처음 만든 개발자가 퇴사하더라도, 새롭게 입사한 후임자가 이 데이터 모델링 산출물(ERD 문서)만 싹 훑어보면 "아, 우리 대학교 DB는 이렇게 생겼구나!" 하고 <span class="highlight">단번에 업무 파악을 할 수 있게 해주는 훌륭한 설명서(가이드북)</span>가 됩니다.</div>
+            <div class="addon-box">
+                <strong>💡 실무 Add-on</strong>
+                실무에서는 10년 넘은 노후화된(레거시) 시스템을 유지 보수하는 일이 잦습니다. 이때 제대로 된 모델 '문서' 하나가 남아있느냐 없느냐가 개발자의 야근 유무를 결정짓습니다.
+            </div>
+        </div>
+
+        <div class="feature-card card-5">
+            <h2>5. 👓 다양한 관점 제공 (Perspectives)</h2>
+            <div class="book-text">"다양한 영역에 집중하기 위해 다른 영역의 세부 사항은 숨기는 다양한 관점을 제공한다."</div>
+            <div class="easy-text">
+                • 총장님(경영진)에겐 큼직한 핵심 뼈대만 (개념적)<br>
+                • 기획자에겐 모든 속성이 다 적힌 그림을 (논리적)<br>
+                • 개발자에겐 실제 용량과 타입이 적힌 표를 (물리적)<br>
+                이처럼 <span class="highlight">보는 사람의 수준과 필요에 맞춰 다른 버전을 제공</span>할 수 있습니다.
+            </div>
+            <div class="addon-box">
+                <strong>💡 실무 Add-on</strong>
+                이를 데이터베이스 용어로 '3단계 스키마 구조(외부/개념/내부)'라고도 부릅니다. 일반 사용자가 복잡한 DB 내부까지 알 필요는 없으니까요!
+            </div>
+        </div>
+
+        <div class="feature-card card-6">
+            <h2>6. 🎯 표현 방법 제공 (Representation)</h2>
+            <div class="book-text">"특정 목표에 따라 다양한 상세 수준의 표현 방법을 제공한다."</div>
+            <div class="easy-text">한국 개발자든 미국 개발자든, 까마귀 발 모양(IE) 같은 표준화된 기호를 사용하기 때문에, <span class="highlight">말이 통하지 않아도 설계도 기호만 보면 다 같이 이해하고 작업할 수 있는 '공통 언어'를 제공</span>합니다.</div>
+            <div class="addon-box">
+                <strong>💡 실무 Add-on</strong>
+                마치 음악가들이 악보(음표)라는 공통의 표현 방법으로 소통하듯, 전 세계 모든 데이터베이스 엔지니어들은 ERD라는 공통의 악보를 보고 함께 시스템을 연주합니다.
+            </div>
+        </div>
+
+    </div>
+    <div class="exam-tip-box">
+        <h2>SQLD 실전 기출 대비 초압축 암기법</h2>
+        <p>시험장에서는 이 6가지 단어의 첫 글자만 정확히 머릿속에 떠올리시면 무조건 1문제를 맞출 수 있습니다.</p>
+        <div class="mnemonic">"가·명·구·문·관·표"</div>
+        <p>※ 주의: 보기 중에 위 단어들을 슬쩍 다른 단어(예: 시스템의 최적화, 자동화 제어 등)로 바꿔치기하는 오답을 과감하게 골라내시면 됩니다!</p>
+    </div>
+
+</div>
+
+</body>
+</html>

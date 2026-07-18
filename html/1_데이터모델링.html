@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목: 데이터 모델링의 3대 특징과 활용</title>
+    <style>
+        /* 기본 스타일 및 폰트 설정 */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #2980b9;
+            --accent-color: #e74c3c;
+            --bg-color: #f0f4f8;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --analogy-bg: #e1f0fa;
+            --analogy-border: #3498db;
+            --warning-bg: #fdedec;
+            --warning-border: #c0392b;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 50px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 제목 스타일 */
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            text-align: center;
+            border-bottom: 3px solid var(--secondary-color);
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            font-size: 1.6rem;
+            margin-top: 50px;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before {
+            content: "📌";
+            margin-right: 10px;
+        }
+
+        h3 {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            margin-top: 30px;
+        }
+
+        /* 카드 및 박스 스타일 */
+        .feature-card {
+            background-color: #fafbfc;
+            border: 1px solid #e1e4e8;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+            transition: transform 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .feature-card h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            border-bottom: 2px dashed #e1e4e8;
+            padding-bottom: 10px;
+        }
+
+        .analogy-box {
+            background-color: var(--analogy-bg);
+            border-left: 5px solid var(--analogy-border);
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .analogy-box h4 {
+            margin: 0 0 10px 0;
+            color: #21618c;
+            display: flex;
+            align-items: center;
+        }
+        
+        .analogy-box h4::before {
+            content: "🎓";
+            margin-right: 8px;
+        }
+
+        .warning-box {
+            background-color: var(--warning-bg);
+            border-left: 5px solid var(--warning-border);
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .warning-box h3 {
+            color: var(--warning-border);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .warning-box h3::before {
+            content: "🚨";
+            margin-right: 8px;
+        }
+
+        .summary-box {
+            background-color: #fef9e7;
+            border: 2px solid #f4d03f;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 40px;
+        }
+
+        /* 텍스트 강조 스타일 */
+        strong {
+            color: var(--accent-color);
+        }
+
+        .highlight {
+            background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #ffeaa7 40%);
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        ul {
+            padding-left: 25px;
+            margin-bottom: 15px;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        hr {
+            border: 0;
+            height: 1px;
+            background: #e1e4e8;
+            margin: 40px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📐 1과목 초핵심: 데이터 모델링의 3대 특징</h1>
+    
+    <p>우리가 앞서 어렵게 느꼈던 <em>"모델이란 사물 또는 사건에 관한 양상이나 관점을 명확하게 하는 것"</em>이라는 문장은, 결국 데이터 모델링이 가진 <strong>3가지 핵심 성격(추상화·단순화·명확성)</strong>을 학술적으로 풀어쓴 것입니다. 시험에 보기로 아주 자주 출제되며, 실무에서도 좋은 설계를 평가하는 기준이 되니 실무 예시와 함께 완벽히 매칭해 두세요.</p>
+
+    <div class="feature-card">
+        <h3>1. 추상화 (Abstraction) : "필요한 특징만 쏙 뽑아내기"</h3>
+        <ul>
+            <li><strong>교재 속 정의:</strong> 현실 세계의 복잡한 현상을 일정한 양식과 기호에 맞춰 간략하게 표현하는 것. (앞서 배운 '가설적' 표현과 같은 맥락입니다.)</li>
+            <li><strong>💡 실무 Add-on:</strong> 추상화를 잘해야 데이터베이스의 불필요한 용량 낭비를 막고, 시스템이 핵심 비즈니스 로직에만 집중할 수 있습니다.</li>
+        </ul>
+        <div class="analogy-box">
+            <h4>수강신청 예시</h4>
+            <p>현실의 '옥한빛' 학생은 좋아하는 음악, 시력, 발 사이즈, 성격 등 수만 가지 특징을 가진 복잡한 존재입니다. 하지만 대학교 학사 관리 시스템(관점)에서는 이런 정보가 필요 없습니다. 오직 시스템 구축에 꼭 필요한 <strong>[학번, 이름, 학과, 학년]</strong>이라는 핵심 특징만 쏙 뽑아내어 <code>student</code> 테이블의 속성으로 정의하는 과정이 바로 '추상화'입니다.</p>
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <h3>2. 단순화 (Simplification) : "어린이도 알 수 있게 군더더기 빼기"</h3>
+        <ul>
+            <li><strong>교재 속 정의:</strong> 복잡한 현실 세계를 제한된 표기법이나 언어로 표현하여, 누구나 쉽게 이해할 수 있게 하는 것.</li>
+            <li><strong>💡 실무 Add-on:</strong> 단순화를 위해 전 세계 개발자가 공통으로 사용하는 언어가 바로 <strong>ERD(Entity-Relationship Diagram)</strong>와 까마귀 발 표기법입니다.</li>
+        </ul>
+        <div class="analogy-box">
+            <h4>수강신청 예시</h4>
+            <p>학생들이 수강신청을 할 때 일어나는 복잡한 일들(서버 접속 대기, 장바구니 담기, 클릭 전쟁 등)을 전부 다 설계도에 적으면 아무도 알아보지 못합니다. 이를 딱 세 단어인 <strong>[학생], [과목], [수강신청(enrol)]</strong>이라는 사각형(엔터티)과 선(관계)으로만 단순하게 요약하여 표기법(ERD)에 맞게 그려내는 것이 '단순화'입니다.</p>
+        </div>
+    </div>
+
+    <div class="feature-card">
+        <h3>3. 명확성 / 정확성 (Clarity) : "동상이몽 방지! 오직 하나의 의미로만"</h3>
+        <ul>
+            <li><strong>교재 속 정의:</strong> 대상에 대한 애매모호함을 제거하고, 연관된 사람들이 오해 없이 정확하게 한 가지 의미로만 이해하도록 명확하게 기술하는 것.</li>
+            <li><strong>💡 실무 Add-on:</strong> 기획자, 개발자, DBA 등 다양한 부서의 사람들이 모여서 협업할 때, 명확성이 결여된 모델은 필연적으로 시스템 결함을 초래합니다.</li>
+        </ul>
+        <div class="analogy-box">
+            <h4>수강신청 예시</h4>
+            <p>학사팀 교직원이 개발자에게 "학생이 과목을 들으면 성적이 나와요"라고 말로만 하면, 개발자는 성적을 'A, B, C' 텍스트로 넣어야 할지, '100점, 90점' 숫자로 넣어야 할지 헷갈립니다. 모델링을 통해 <code>enrol</code> 테이블의 <code>enr_grade NUMBER</code> 라고 명확하게 못을 박아두면, <strong>"아, 성적은 숫자로 정밀하게 기록되는구나!"</strong>라고 모두가 오해 없이 한 목소리를 내게 됩니다.</p>
+        </div>
+    </div>
+
+    <hr>
+
+    <h1>📖 1과목 핵심 요약: 데이터 모델링의 활용 시기</h1>
+    
+    <p>"정보시스템 구축에서 모델링은 계획, 분석, 설계 단계에서 업무를 분석하고 설계할 때, 이후 구축, 운영 단계에서 변경과 관리할 때 이용된다" 라는 복잡한 문장은 결국 <strong>'건물을 지을 때 설계도가 언제 필요한가'</strong>를 묻는 상식적인 이야기입니다.</p>
+
+    <h2>1. 🏗️ 건물을 짓기 전: 계획, 분석, 설계 단계</h2>
+    <p class="highlight">"어떤 시스템을 만들지 고민하고 밑그림을 그릴 때 쓰인다."</p>
+    <ul>
+        <li><strong>계획/분석 단계 (개념적 모델링):</strong> 총장님이 "수강신청 시스템을 새로 만들자!"라고 지시합니다. 모델러는 실무자를 찾아가 업무를 분석하여 <strong>[학생], [과목]이라는 큰 뼈대(엔터티)를 뽑아냅니다.</strong></li>
+        <li><strong>설계 단계 (논리적/물리적 모델링):</strong> 뽑아낸 정보들을 모아서 전 세계 공통 약속인 ERD로 예쁘게 그립니다. <em>"학생은 학번을 PK로 삼고, 수강내역과 1:M 관계로 묶자!"</em> ➔ 개발자들이 코딩에 들어가기 전, <strong>완벽한 뼈대(설계도)를 완성</strong>하는 과정입니다.</li>
+    </ul>
+
+    <h2>2. 🚀 건물을 짓고 난 후: 구축, 운영 단계</h2>
+    <p class="highlight">"실제 코딩을 할 때와 나중에 시스템을 고칠 때 쓰인다."</p>
+    <ul>
+        <li><strong>구축 단계:</strong> 진짜 프로그래머들이 투입됩니다. 말로 묻지 않고, 앞서 그려둔 <strong>ERD(데이터 모델) 문서만 쫙 펼쳐놓고</strong>, 그 그림을 보며 실제 DB에 테이블(<code>CREATE TABLE</code>)을 만듭니다. ➔ 실제 시스템 구축 시 <strong>가장 정확한 시공 도면</strong>이 됩니다.</li>
+        <li><strong>운영/변경 단계 (★가장 중요!):</strong> 시스템 완성 후 3년 뒤, 대학교에 '복수전공' 제도가 생겼습니다. 처음 만든 개발자가 퇴사했더라도, 후임 개발자는 <strong>과거에 그려둔 ERD를 꺼내 봅니다.</strong> <em>"아, [학생] 테이블 구조가 이렇구나. 여기서 선을 하나 더 빼서 [복수전공]을 연결하면 시스템이 안 무너지겠네!"</em> ➔ 시스템 붕괴 없이 <strong>안전하게 변경하고 관리</strong>할 수 있습니다. (모델이 곧 살아있는 문서가 됨)</li>
+    </ul>
+
+    <div class="summary-box">
+        💡 한 줄 요약<br>
+        <span style="font-weight: normal; margin-top: 10px; display: block;">"잘 그려둔 데이터 모델(설계도)은 시스템을 기획할 때 밑그림이 되고, 나중에 기능이 추가되거나 담당자가 바뀌어도 시스템을 안전하게 고칠 수 있는 최고의 설명서(가이드북)가 된다."</span>
+    </div>
+
+    <hr>
+
+    <div class="warning-box">
+        <h3>SQLD 실전 기출 함정 파헤치기</h3>
+        <p>시험 문제에서는 이 3가지 단어의 정의를 슬쩍 뒤바꾸거나, 엉뚱한 단어를 끼워 넣어 오답을 만듭니다.</p>
+        
+        <p><strong>[기출 보기]</strong> "데이터 모델링은 현실 세계의 복잡성을 그대로 반영하기 위해 최대한 <strong>'상세화'</strong>하여 표현해야 한다."</p>
+        
+        <ul>
+            <li><strong>정답:</strong> <strong style="font-size: 1.2rem;">X (틀림!)</strong></li>
+            <li><strong>해설:</strong> 데이터 모델링은 현실을 100% 똑같이 복제하는 것이 아닙니다. 복잡한 현실을 시스템에 맞게 줄여주는 <strong>'추상화'</strong>, <strong>'단순화'</strong>가 핵심 특징입니다. 너무 상세하게 다 적으려고 하면 모델링의 본질을 잃어버리게 됩니다.</li>
+        </ul>
+    </div>
+
+    <div class="summary-box" style="background-color: var(--primary-color); color: white; border-color: var(--primary-color);">
+        <h3 style="color: white; margin-top: 0;">🎯 3줄 최종 요약 암기법</h3>
+        <ul style="text-align: left; margin: 0 auto; display: inline-block;">
+            <li><strong>추상화:</strong> 현실에서 핵심만 <strong>추</strong>출하기 (학번, 이름만 쏙!)</li>
+            <li><strong>단순화:</strong> 표기법을 통해 <strong>단</strong>순하게 줄이기 (사각형과 선으로 찍!)</li>
+            <li><strong>명확성:</strong> 애매함 없이 <strong>명</strong>확하게 약속하기 (동상이몽 방지!)</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>
