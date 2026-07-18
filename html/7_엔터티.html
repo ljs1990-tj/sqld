@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: 엔터티(Entity) 완벽 해부</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #16a085;
+            --accent-color: #e74c3c;
+            --info-color: #2980b9;
+            --bg-color: #f5f7fa;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background-color: var(--card-bg);
+            padding: 50px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 타이틀 스타일 */
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            text-align: center;
+            border-bottom: 3px solid var(--secondary-color);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            font-size: 1.6rem;
+            margin-top: 50px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before {
+            content: "💎";
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            font-size: 1.25rem;
+            margin-top: 30px;
+        }
+
+        /* 개념 카드 박스 */
+        .concept-box {
+            background-color: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        /* 강조 텍스트 */
+        strong {
+            color: var(--accent-color);
+        }
+
+        .highlight-text {
+            background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #e8f8f5 40%);
+            font-weight: bold;
+            color: #117a65;
+        }
+
+        /* 비유 박스 */
+        .analogy-card {
+            background-color: #e8f6f3;
+            border-left: 5px solid var(--secondary-color);
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 20px 0;
+        }
+
+        .analogy-card h4 {
+            margin: 0 0 10px 0;
+            color: #117a65;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .analogy-card h4::before {
+            content: "💡";
+            margin-right: 8px;
+        }
+
+        /* 기출 함정 빨간 박스 */
+        .warning-card {
+            background-color: #fdf2f2;
+            border: 1px solid #fde8e8;
+            border-left: 5px solid var(--accent-color);
+            padding: 20px;
+            border-radius: 0 10px 10px 0;
+            margin: 25px 0;
+        }
+
+        .warning-card h4 {
+            margin: 0 0 10px 0;
+            color: #c0392b;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .warning-card h4::before {
+            content: "🚨";
+            margin-right: 8px;
+        }
+
+        /* 테이블 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* 샌드박스 앱 스타일 */
+        .sandbox-container {
+            background-color: #f1f5f9;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 50px;
+            border: 2px solid #cbd5e1;
+        }
+
+        .sandbox-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .sandbox-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.5rem;
+        }
+
+        .sandbox-header p {
+            margin: 5px 0 0 0;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #f1f5f9;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .select-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+
+        .btn-verify {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.2s;
+        }
+
+        .btn-verify:hover {
+            background-color: #117a65;
+        }
+
+        /* 검증 결과 창 */
+        .result-panel {
+            margin-top: 25px;
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            border: 1px solid #cbd5e1;
+            display: none;
+        }
+
+        .result-status {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .status-pass {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .status-fail {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+
+        .score-bar {
+            height: 10px;
+            background-color: #e2e8f0;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .score-fill {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .rule-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+
+        .rule-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .rule-item.met { color: #059669; font-weight: bold; }
+        .rule-item.failed { color: #dc2626; }
+
+        .translation-box {
+            background-color: #f0fdfa;
+            border: 1px solid #ccfbf1;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .translated-name {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📖 1과목 핵심 요약 : 엔터티(Entity) 완벽 해부</h1>
+    <p style="text-align: center; color: #64748b;">현업의 데이터를 담는 가장 강력한 뼈대, 엔터티의 모든 것을 정리합니다.</p>
+
+    <h2>1. 👥 엔터티(Entity)와 인스턴(Instance)의 정의</h2>
+    <p>데이터베이스의 물리적 구조와 매핑되는 개념으로, <strong>'표의 설계도(틀)'</strong>인지 <strong>'표 내부의 진짜 데이터 한 줄'</strong>인지 구분하는 것이 시험의 핵심입니다.</p>
+    
+    <div class="concept-box">
+        <ul>
+            <li><span class="highlight-text">엔터티 (Entity):</span> 업무에 필요한 데이터들의 '집합'이자 '개념적 이름표'입니다. (물리 모델의 <strong>테이블</strong>과 매핑)</li>
+            <li><span class="highlight-text">인스턴스 (Instance):</span> 엔터티 구조에 맞춰 실제로 입력된 개별 데이터 '한 줄'입니다. (물리 모델의 <strong>로우(Row/Tuple)</strong>와 매핑)</li>
+        </ul>
+    </div>
+
+    <div class="analogy-card">
+        <h4>빵틀과 슈크림빵 비유</h4>
+        <p>쿠키를 굽는 <strong>'쿠키 틀(Entity)'</strong>은 단 하나만 존재하며 모양(구조)을 결정합니다. 그 틀로 찍어내어 구운 실체인 <strong>'쿠키들(Instance)'</strong>은 초코맛, 딸기맛 등 고유한 맛을 가지며 무수히 많이 존재할 수 있습니다.</p>
+    </div>
+
+    <div class="warning-card">
+        <h4>🚨 시험 단골 함정 패턴 피하기</h4>
+        <p><strong>오답 보기:</strong> "엔터티는 데이터베이스에 기록되는 가장 작은 단위인 행(Row) 자체를 의미한다." (X)<br>
+        <strong>해설:</strong> 행(Row) 자체는 '인스턴스'를 뜻합니다. 엔터티는 인스턴스들의 **집합(Set)**이자 뼈대입니다. 단어의 정의를 슬쩍 바꾸는 오답에 주의하세요!</p>
+    </div>
+
+    <h2>2. ⭐ 좋은 엔터티가 되기 위한 5가지 필수 조건</h2>
+    <p>설계도를 그릴 때 아무 단어나 네모 박스로 만들면 데이터베이스가 무너집니다. 무조건 다음 5가지 합격 기준을 통과해야 합니다.</p>
+
+    <div class="concept-box" style="background-color: #fff;">
+        <ol style="padding-left: 20px; line-height: 2;">
+            <li><strong>① 유일한 식별자 소유 (Identifier):</strong> 각 인스턴스를 완벽히 구분할 수 있는 고유 이름표(학번, 주민번호 등)가 반드시 정의되어야 합니다.</li>
+            <li><strong>② 2개 이상의 인스턴스 존재 (Set of Instances):</strong> 데이터가 단 한 줄만 들어오는 테이블은 만들 필요가 없습니다. 반드시 집합을 이루어야 합니다.</li>
+            <li><strong>③ 설명 속성 보유 (Attribute):</strong> 껍데기만 있으면 안 되고, 대상을 구체적으로 설명할 속성(이름, 학과, 키 등)이 1개 이상 존재해야 합니다.</li>
+            <li><strong>④ 실제 업무 프로세스에 이용 (Business Process):</strong> 회사의 실제 업무(수강신청 등)에 쓰이는 살아있는 데이터여야 합니다. (예: 학생의 게임 티어 등은 학교 업무에 무관하므로 탈락!)</li>
+            <li><strong>⑤ 타 엔터티와의 관계 존재 (Relationship):</strong> 고립된 외딴섬 테이블은 존재할 수 없습니다. 최소 1개 이상의 다른 테이블과 선으로 연결되어 상호작용해야 합니다.</li>
+        </ol>
+    </div>
+
+    <div class="warning-card" style="background-color: #fff9f0; border-color: #ffe8cc; border-left-color: #f39c12;">
+        <h4 style="color: #d35400;">💡 관계 조건(⑤번)의 아주 중요한 예외 (특급 기출!)</h4>
+        <p><strong>"모든 엔터티는 다른 엔터티와 무조건 관계를 맺어야 한다?" ➔ X (틀림)</strong><br>
+        현업에서 공통 기준으로 사용하는 <strong>[공통코드 테이블]</strong>이나 단순 로그성 <strong>[통계 테이블]</strong>은 관계 선을 그리지 않고 독립적으로 존재할 수 있습니다. 시험에 예외 조건으로 아주 자주 나옵니다!</p>
+    </div>
+
+    <h2>3. ⏱️ 엔터티의 2가지 핵심 분류법</h2>
+    
+    <h3>A. 형태(물리적 실체 유무)에 따른 분류</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>분류</th>
+                <th>설명</th>
+                <th>수강신청 시스템 예시</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>유형 엔터티</strong></td>
+                <td>눈에 보이고 물리적 형태가 존재하며 지속적으로 사용됨.</td>
+                <td>학생, 교수, 강의실, 책</td>
+            </tr>
+            <tr>
+                <td><strong>개념 엔터티</strong></td>
+                <td>형체는 없으나 관리해야 할 추상적/개념적 정보.</td>
+                <td>학과, 전공, 과목, 금융상품</td>
+            </tr>
+            <tr>
+                <td><strong>사건 엔터티</strong></td>
+                <td>업무 프로세스를 수행하면서 비로소 '발생'하는 엔터티.</td>
+                <td>수강신청내역, 주문이력, 휴학기록</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>B. 발생 시점(선후 관계)에 따른 분류</h3>
+    <div class="concept-box">
+        <ul>
+            <li style="margin-bottom: 15px;">
+                <span class="highlight-text" style="background: #eaf2f8; color: #2980b9;">① 기본 / 키 엔터티 (Fundamental)</span>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">원래부터 독립적으로 존재하던 뿌리(부모) 데이터입니다. 스스로 독립적인 식별자를 가집니다.<br>
+                <strong>예시:</strong> [학생], [과목] (수강신청이라는 액션 이전부터 이미 학교에 존재함)</p>
+            </li>
+            <li style="margin-bottom: 15px;">
+                <span class="highlight-text" style="background: #fdf2e9; color: #e67e22;">② 중심 엔터티 (Main)</span>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">기본 엔터티로부터 파생되어 생겨나며, 업무의 메인 뼈대를 이룹니다. 행위 엔터티를 낳는 부모가 됩니다.<br>
+                <strong>예시:</strong> [수강신청], [개설강좌] (학생과 과목이 결합되어 탄생한 중심 업무)</p>
+            </li>
+            <li>
+                <span class="highlight-text" style="background: #fef9e7; color: #d4ac0d;">③ 행위 엔터티 (Active)</span>
+                <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #555;">2개 이상의 부모 엔터티들의 활동에 의해 빈번하게 생성되며, 데이터가 가장 빠르게, 많이 쌓입니다.<br>
+                <strong>예시:</strong> [수강과목정정이력], [출결상세로그] (수강신청 이후 매일 바뀌는 하위 이력들)</p>
+            </li>
+        </ul>
+    </div>
+
+    <h2>4. 🗣️ 실무 심화: 한글 엔터티(논리) vs 영문 테이블(물리) 규칙</h2>
+    <p>설계 단계의 기획 도면에서는 한글을 쓰지만, <strong>실제 DB를 구축할 때는 무조건 영문 표준 단어와 접두사를 조합</strong>해야 완벽한 테이블이 완성됩니다.</p>
+
+    <div class="concept-box" style="background-color: #fff;">
+        <h3 style="margin-top:0;">📌 영문 테이블 접두사(Prefix) 표준 가이드</h3>
+        <ul>
+            <li><strong>`TB_` (Table):</strong> 가장 표준적인 실데이터 테이블 (예: 학생 ➔ `TB_STU`)</li>
+            <li><strong>`CD_` (Code):</strong> 변경이 적고 기준이 되는 공통 코드성 테이블 (예: 학과코드 ➔ `CD_DEPT`)</li>
+            <li><strong>`HIS_` (History):</strong> 로그, 변경 추적 등 과거 기록용 테이블 (예: 변경이력 ➔ `HIS_CHG_LOG`)</li>
+        </ul>
+    </div>
+
+
+    <div class="sandbox-container">
+        <div class="sandbox-header">
+            <h3>⚙️ 실시간 엔터티 적격성 검증 & 영문 변환기</h3>
+            <p>직접 임의의 한글 엔터티를 설계하고 필수 조건을 선택하여 진짜 엔터티 자격이 주어지는지 테스트해 보세요!</p>
+        </div>
+
+        <div class="form-group">
+            <label for="entityName">1. 설계할 한글 엔터티 이름 입력</label>
+            <input type="text" id="entityName" value="학생수강신청이력" placeholder="예: 학생, 과목코드, 성적이력 등">
+        </div>
+
+        <div class="form-group">
+            <label>2. 엔터티의 5대 보유 요건 체크</label>
+            <div class="checkbox-group">
+                <label class="checkbox-item">
+                    <input type="checkbox" id="ruleId" checked> 각각의 데이터를 구분할 유일한 식별자(PK)가 존재합니까?
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="ruleSet" checked> 데이터가 2개 이상 쌓일 수 있는 집합 구조입니까?
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="ruleAttr" checked> 대상을 상세히 묘사할 속성(컬럼)이 존재합니까?
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="ruleProc" checked> 실제 학교나 비즈니스 업무 프로세스에 필요한 데이터입니까?
+                </label>
+                <label class="checkbox-item">
+                    <input type="checkbox" id="ruleRel" checked> 다른 엔터티와 연결된 관계를 가집니까?
+                </label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>3. 발생 시점 및 성격 선택</label>
+            <div class="select-grid">
+                <div>
+                    <label style="font-size: 0.85rem; color: #64748b;">발생 시점</label>
+                    <select id="originType">
+                        <option value="Fundamental">기본 / 키 엔터티 (Fundamental)</option>
+                        <option value="Main">중심 엔터티 (Main)</option>
+                        <option value="Active" selected>행위 / 이력 엔터티 (Active)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.85rem; color: #64748b;">테이블 성격</label>
+                    <select id="tableNature">
+                        <option value="TB">일반 마스터 데이터 (TB_)</option>
+                        <option value="CD">공통 기준 코드 데이터 (CD_)</option>
+                        <option value="HIS" selected>이력 및 로그 기록용 (HIS_)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-verify" onclick="runVerification()">🔍 엔터티 자격 검증 & 영문 변환 실행</button>
+
+        <div class="result-panel" id="resultPanel">
+            <div id="statusBadge" class="result-status"></div>
+            
+            <div class="score-bar">
+                <div id="scoreFill" class="score-fill"></div>
+            </div>
+
+            <ul class="rule-list">
+                <li id="resRuleId" class="rule-item">✓ 식별자 소유 여부</li>
+                <li id="resRuleSet" class="rule-item">✓ 집합 여부 (인스턴스 2개 이상)</li>
+                <li id="resRuleAttr" class="rule-item">✓ 설명 속성 존재 여부</li>
+                <li id="resRuleProc" class="rule-item">✓ 업무 사용 여부</li>
+                <li id="resRuleRel" class="rule-item">✓ 타 엔터티 관계 여부</li>
+            </ul>
+
+            <div class="translation-box">
+                <div style="font-size: 0.9rem; color: #64748b;">물리 모델 자동 변환 결과 (추천 테이블명)</div>
+                <div id="translatedName" class="translated-name">TB_UNKNOWN</div>
+                <div id="translationLog" style="font-size: 0.8rem; color: #0f766e; margin-top: 5px;"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // 표준 영문 사전 매핑 딕셔너리
+    const wordDic = {
+        "학생": "STU",
+        "수강": "COURSE",
+        "신청": "REG",
+        "이력": "HIST",
+        "과목": "SUBJECT",
+        "학과": "DEPT",
+        "코드": "CODE",
+        "성적": "GRADE",
+        "변경": "CHG",
+        "로그": "LOG"
+    };
+
+    function runVerification() {
+        const entityName = document.getElementById('entityName').value.trim();
+        
+        // 체크박스 상태값
+        const rId = document.getElementById('ruleId').checked;
+        const rSet = document.getElementById('ruleSet').checked;
+        const rAttr = document.getElementById('ruleAttr').checked;
+        const rProc = document.getElementById('ruleProc').checked;
+        const rRel = document.getElementById('ruleRel').checked;
+
+        const tableNature = document.getElementById('tableNature').value;
+
+        // 점수 계산 (5개 중 만족 개수)
+        let score = 0;
+        if(rId) score++;
+        if(rSet) score++;
+        if(rAttr) score++;
+        if(rProc) score++;
+        
+        // 예외 규칙 처리: 코드형(CD) 테이블은 관계가 없어도 감점하지 않고 보너스 처리함
+        let isCodeException = (tableNature === 'CD' && !rRel);
+        if(rRel || isCodeException) {
+            score++;
+        }
+
+        // 결과 UI 업데이트
+        const panel = document.getElementById('resultPanel');
+        panel.style.display = 'block';
+
+        const badge = document.getElementById('statusBadge');
+        const fill = document.getElementById('scoreFill');
+
+        fill.style.width = (score / 5 * 100) + '%';
+
+        // 합격/불합격 상태 바인딩
+        if (score === 5) {
+            badge.className = 'result-status status-pass';
+            badge.innerHTML = '🎉 축하합니다! 완벽한 데이터 모델 엔터티입니다.';
+        } else {
+            badge.className = 'result-status status-fail';
+            badge.innerHTML = `⚠️ 엔터티 자격 조건 미흡 (${score}/5 만족)`;
+        }
+
+        // 개별 규칙 성공여부 스타일 바인딩
+        updateRuleStatus('resRuleId', rId);
+        updateRuleStatus('resRuleSet', rSet);
+        updateRuleStatus('resRuleAttr', rAttr);
+        updateRuleStatus('resRuleProc', rProc);
+        updateRuleStatus('resRuleRel', rRel || isCodeException, isCodeException ? "코드 테이블 예외 적용 통과" : "");
+
+        // 영문 번역 처리
+        let prefix = tableNature + "_";
+        let translatedBody = translateName(entityName);
+        
+        document.getElementById('translatedName').innerText = prefix + translatedBody;
+        document.getElementById('translationLog').innerText = `한글명 [${entityName}]을(를) 표준 영문 약어 사전을 참고하여 스네이크 케이스로 자동 번역하였습니다.`;
+    }
+
+    function updateRuleStatus(elementId, isMet, customText = "") {
+        const el = document.getElementById(elementId);
+        if (isMet) {
+            el.className = 'rule-item met';
+            el.innerHTML = `✓ ${el.innerText.split(' ➔')[0]} ➔ 통과 ${customText ? '('+customText+')' : ''}`;
+        } else {
+            el.className = 'rule-item failed';
+            el.innerHTML = `✗ ${el.innerText.split(' ➔')[0]} ➔ ⚠️ 결함 상태`;
+        }
+    }
+
+    function translateName(name) {
+        if(!name) return "TEMP_TABLE";
+        
+        let result = [];
+        // 사전에 매핑된 표준 단어 추출
+        const keys = Object.keys(wordDic);
+        let tempName = name;
+
+        // 글자수가 긴 것부터 교체해서 어순을 매칭함
+        keys.sort((a,b) => b.length - a.length);
+
+        for(let key of keys) {
+            if(tempName.includes(key)) {
+                tempName = tempName.replace(new RegExp(key, 'g'), `_${wordDic[key]}_`);
+            }
+        }
+
+        // 한글이나 매핑 안된 텍스트 청소 및 스네이크 언더바 정리
+        let parsed = tempName.toUpperCase()
+            .replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '') // 한글 제거
+            .replace(/_+/g, '_')               // 연속 언더바 축소
+            .replace(/^_+|_+$/g, '');          // 양끝 언더바 제거
+
+        return parsed || "UNKNOWN_NAME";
+    }
+
+    // 초기 실행
+    runVerification();
+</script>
+
+</body>
+</html>

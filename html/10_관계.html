@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: 관계(Relationship) 완벽 해부</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #8e44ad;
+            --accent: #e74c3c;
+            --info: #3498db;
+            --bg-light: #f9f9f9;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #f0f3f4;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            text-align: center;
+            border-bottom: 3px solid var(--secondary);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            color: var(--secondary);
+            font-size: 1.5rem;
+            margin-top: 40px;
+            display: flex;
+            align-items: center;
+            border-left: 5px solid var(--secondary);
+            padding-left: 15px;
+            background: #faf5fc;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        /* 1번 존재 vs 행위 */
+        .flex-grid {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .flex-card {
+            flex: 1;
+            background: var(--bg-light);
+            border: 1px solid #e0e0e0;
+            padding: 25px;
+            border-radius: 8px;
+        }
+
+        .flex-card h3 {
+            margin-top: 0;
+            color: var(--info);
+            border-bottom: 2px dashed #bcdcfa;
+            padding-bottom: 10px;
+        }
+
+        .flex-card .example {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 3px solid var(--info);
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* M:M 기출 경고 박스 */
+        .alert-box {
+            background: #fdf2f2;
+            border: 1px solid #fadbd8;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 6px;
+            margin: 25px 0;
+        }
+
+        .alert-box h4 {
+            color: var(--accent);
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        /* ERD 읽기 공식 박스 */
+        .formula-box {
+            background: #2c3e50;
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            margin: 30px 0;
+            box-shadow: 0 10px 20px rgba(44, 62, 80, 0.2);
+        }
+
+        .formula-box .formula {
+            font-weight: bold;
+            color: #f1c40f;
+            line-height: 1.8;
+            margin-top: 10px;
+        }
+        
+        .formula-box .highlight-tag {
+            background: rgba(255,255,255,0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px dashed #f1c40f;
+        }
+
+        /* 읽기 예시 테이블 */
+        .read-example {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .read-card {
+            flex: 1;
+            background: white;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .read-card h4 {
+            background: #ecf0f1;
+            padding: 10px;
+            margin: -20px -20px 15px -20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+            color: var(--primary);
+        }
+
+        .read-card ol { padding-left: 20px; }
+        .read-card li { margin-bottom: 8px; }
+        
+        .final-sentence {
+            background: #eafaf1;
+            color: #1d8348;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 15px;
+            border-left: 4px solid #2ecc71;
+        }
+
+        strong { color: var(--accent); }
+        .highlight { font-weight: bold; background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #e8daef 40%); color: var(--secondary); }
+
+        @media (max-width: 768px) {
+            .flex-grid, .read-example { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📖 1과목 핵심 요약: 관계(Relationship) 완벽 해부</h1>
+    <p style="text-align: center; color: #7f8c8d; font-size: 1.1rem; margin-bottom: 40px;">엔터티(명사)와 엔터티(명사)가 서로 어떻게 연관되어 있는지를 나타내는 <strong>동사(Verb)</strong> 역할을 하는 것이 바로 '관계'입니다.</p>
+
+    <h2>1. ✌️ 관계의 2가지 분류 (초핵심: 존재 vs 행위)</h2>
+    <p>두 엔터티가 선으로 연결될 때, "그냥 소속되어 있어서" 연결된 것인지, "어떤 액션을 취해서" 연결된 것인지 구분해야 합니다. <strong>(※ 시험에서 ERD 선을 보여주고 무슨 관계인지 묻는 문제가 자주 나옵니다.)</strong></p>
+
+    <div class="flex-grid">
+        <div class="flex-card">
+            <h3>① 존재에 의한 관계 (Existence)</h3>
+            <p>어떤 구체적인 행위를 하지 않아도, 그냥 <strong>상태나 소속 자체</strong>로 자연스럽게 맺어지는 관계입니다.</p>
+            <div class="example">
+                [학생] ── (소속된다) ── [학과]<br>
+                [직원] ── (소속된다) ── [부서]
+            </div>
+            <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">➔ 옥한빛 학생이 매일 무슨 특별한 행동을 하지 않아도, 입학하면서 부여받은 '컴퓨터공학과'라는 사실 자체(존재)로 연결되어 있습니다.</p>
+        </div>
+        <div class="flex-card">
+            <h3>② 행위에 의한 관계 (Event/Action)</h3>
+            <p>누군가 특정한 <strong>'행동(이벤트, 업무)'</strong>을 해야만 비로소 발생하는 관계입니다.</p>
+            <div class="example">
+                [학생] ── (신청한다) ── [과목]<br>
+                [고객] ── (주문한다) ── [상품]
+            </div>
+            <p style="font-size: 0.9rem; color: #555; margin-top: 10px;">➔ 학생이 수강신청 버튼을 누르거나, 고객이 결제 버튼을 누르는 '행위'를 해야만 두 엔터티 사이에 관계 데이터가 생겨납니다.</p>
+        </div>
+    </div>
+
+    <h2>2. ✍️ 관계를 그리는 3가지 핵심 요소</h2>
+    <p>ERD에서 관계(선)를 완벽하게 그리려면 다음 3가지를 반드시 정의해야 합니다.</p>
+    <ul>
+        <li><strong>관계명 (Membership):</strong> 이 선의 '이름'이 무엇인가? (예: 소속된다, 수강한다) ➔ <em>※ 애매한 동사 피하기, 현재형 사용하기!</em></li>
+        <li><strong>관계차수 (Cardinality):</strong> 1:1인가, 1:M(여러 개)인가? (까마귀 발 모양 표시)</li>
+        <li><strong>관계선택사양 (Optionality):</strong> 필수참여인가(|), 선택참여인가(O)? (동그라미 모양 표시)</li>
+    </ul>
+
+    <h2>3. 🔱 관계차수 (Cardinality)와 다대다(M:M)의 함정</h2>
+    <p>두 엔터티가 관계를 맺을 때, '몇 개'가 참여하는지를 수치로 나타낸 것입니다.</p>
+    <ul>
+        <li><strong>1:1 관계:</strong> 양쪽 모두 딱 1개씩만 연결됨. (예: [학생] - [학생증])</li>
+        <li><strong>1:M 관계 (실무 대세):</strong> 한쪽은 1개인데 반대쪽은 여러 개(M). (예: [학과] 1개 - [학생] 여러 명)</li>
+        <li><strong>M:M 관계:</strong> 양쪽 모두 여러 개를 가짐. (예: [학생] 여러 명 - [과목] 여러 개)</li>
+    </ul>
+
+    <div class="alert-box">
+        <h4>🚨 실무/시험 특급 함정: M:M (다대다) 관계의 해소</h4>
+        <p>양쪽 선 끝에 모두 까마귀 발이 달린 <strong>M:M 관계는 '개념적 모델링(스케치)' 단계에서만 존재</strong>합니다. 실제 논리/물리 DB를 만들 때는 M:M을 그대로 구현할 수 없습니다!</p>
+        <p><strong>💡 해결책 (기출 0순위):</strong> 두 엔터티 사이에 <strong>[수강내역] 같은 '교차 엔터티(행위 엔터티)'를 하나 새로 끼워 넣어서, 1:M 관계 두 개로 쪼개주어야(해소해야) 합니다.</strong></p>
+    </div>
+
+    <h2>4. 🗣️ ERD 유창하게 읽기 (6단계 공식)</h2>
+    <p>네모 박스와 선으로 이루어진 그림을 사람의 '문장'으로 자연스럽게 번역하는 공식입니다. <strong>시험에서 이 순서대로 문장을 잘 만들었는지 묻는 문제가 반드시 나옵니다.</strong></p>
+
+    <div class="formula-box">
+        ✅ ERD 읽기 기본 공식 (순서 완벽 암기!)
+        <div class="formula">
+            <span class="highlight-tag">각각의/하나의</span> (기준 엔터티)은(는)<br>
+            ➔ <span class="highlight-tag">하나/여러 개의</span> (대상 엔터티)를<br>
+            ➔ <span class="highlight-tag">때때로/항상</span><br>
+            ➔ (관계명) <span class="highlight-tag">한다.</span>
+        </div>
+    </div>
+
+    <p style="text-align: center; font-size: 1.2rem; letter-spacing: 2px; font-weight: bold; background: #eee; padding: 10px; border-radius: 8px;">
+        [학생] ───|초───────O∈ [수강내역]
+    </p>
+
+    <div class="read-example">
+        <div class="read-card">
+            <h4>👨‍🎓 [학생]을 기준으로 읽기 (좌 ➔ 우)</h4>
+            <ol>
+                <li><strong>기준 읽기:</strong> <span class="highlight">각각의 (하나의)</span> 학생은</li>
+                <li><strong>대상 차수:</strong> <strong>여러 개의</strong> 수강내역을 <em>(∵ 까마귀 발 `∈`)</em></li>
+                <li><strong>선택 사양:</strong> <strong>때때로 (선택적으로)</strong> <em>(∵ 동그라미 `O`)</em></li>
+                <li><strong>관계명:</strong> 가진다. (신청한다)</li>
+            </ol>
+            <div class="final-sentence">
+                "각각의 학생은 여러 개의 수강내역을 때때로(선택적으로) 가진다."
+            </div>
+        </div>
+
+        <div class="read-card">
+            <h4>📝 [수강내역]을 기준으로 읽기 (우 ➔ 좌)</h4>
+            <ol>
+                <li><strong>기준 읽기:</strong> <span class="highlight">각각의 (하나의)</span> 수강내역은</li>
+                <li><strong>대상 차수:</strong> <strong>단 하나의</strong> 학생에게 <em>(∵ 작대기 `|` 하나)</em></li>
+                <li><strong>선택 사양:</strong> <strong>항상 (반드시)</strong> <em>(∵ 필수 기호 `|`)</em></li>
+                <li><strong>관계명:</strong> 속한다.</li>
+            </ol>
+            <div class="final-sentence">
+                "각각의 수강내역은 단 하나의 학생에게 항상(반드시) 속한다."
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

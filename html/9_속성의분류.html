@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: 속성의 3가지 분류와 도메인</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #2980b9;
+            --accent: #c0392b;
+            --success: #27ae60;
+            --bg-light: #f8f9fa;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #ecf0f1;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 메인 헤더 */
+        .header {
+            background-color: white;
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--card-shadow);
+            text-align: center;
+            margin-bottom: 30px;
+            border-top: 5px solid var(--secondary);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 35px;
+            margin-bottom: 30px;
+            box-shadow: var(--card-shadow);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before {
+            margin-right: 10px;
+            font-size: 1.4rem;
+        }
+
+        /* 1번 섹션 리스트형 카드 */
+        .attr-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .attr-item {
+            background: var(--bg-light);
+            border-left: 4px solid var(--secondary);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .attr-item h3 {
+            margin-top: 0;
+            color: var(--secondary);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .analogy {
+            background: #e8f6f3;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 12px;
+            color: #117a65;
+            font-size: 0.95rem;
+        }
+
+        /* 기출 경고 박스 */
+        .alert-box {
+            background: #fdf2f2;
+            border: 1px solid #fadbd8;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+
+        .alert-box h4 {
+            color: var(--accent);
+            margin-top: 0;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 3열 그리드 */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .grid-card {
+            background: white;
+            border: 2px solid #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .grid-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--secondary);
+        }
+
+        .grid-card h3 {
+            color: var(--primary);
+            margin-top: 0;
+            border-bottom: 1px dashed #bdc3c7;
+            padding-bottom: 10px;
+        }
+
+        /* O/X 테이블 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #e0e6ed;
+            padding: 15px;
+            text-align: left;
+        }
+
+        th { background-color: var(--bg-light); color: var(--primary); }
+        .ox-o { color: var(--success); font-weight: bold; }
+        .ox-x { color: var(--accent); font-weight: bold; }
+
+        /* 도메인 터미널 스타일 박스 */
+        .terminal-box {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            margin-top: 15px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .keyword { color: #f1c40f; font-weight: bold; }
+        .string { color: #2ecc71; }
+        
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #ffeaa7 40%); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>📖 1과목 핵심 요약: 속성의 3가지 분류와 도메인</h1>
+        <p>속성(컬럼)도 성격에 따라 여러 가지 기준으로 나눌 수 있습니다.<br>시험용으로 각 분류의 이름과 예시를 매칭하는 연습을 완벽히 마스터해 봅시다!</p>
+    </div>
+
+    <div class="section-card">
+        <h2 style="before: content: '🗂️';">🗂️ 1. 특성에 따른 분류 (어떻게 만들어졌는가?)</h2>
+        <p>속성이 태생적으로 원래 있던 것인지, 누군가 인위적으로 만든 것인지 따져봅니다.</p>
+
+        <ul class="attr-list">
+            <li class="attr-item">
+                <h3>① 기본 속성 (Basic Attribute) : "원래부터 있던 진짜 데이터"</h3>
+                <p>업무 분석을 통해 추출된, 현실 세계에 원래 존재하는 가장 일반적인 속성입니다.</p>
+                <div class="analogy">🎓 <strong>수강신청 비유:</strong> 학생의 [이름], [주민번호], [생년월일]</div>
+            </li>
+            
+            <li class="attr-item">
+                <h3>② 설계 속성 (Designed Attribute) : "시스템이 만들어낸 꼬리표"</h3>
+                <p>원래 현실엔 없었지만, 학교에서 학생들을 체계적으로 관리(업무 규칙화)하거나 설계를 용이하게 하기 위해 인위적으로 부여한 코드나 일련번호입니다.</p>
+                <div class="analogy">🎓 <strong>수강신청 비유:</strong> [학번], [과목코드], [수강신청 접수번호]</div>
+            </li>
+        </ul>
+
+        <div class="alert-box">
+            <h4>🚨 ③ 파생 속성 (Derived Attribute) : "계산된 결과값" (시험 0순위 단골!)</h4>
+            <p>다른 속성의 영향을 받아 <strong>계산되어 만들어진 속성</strong>입니다.</p>
+            <ul>
+                <li>🎓 <strong>비유:</strong> 학생의 <span class="highlight">[총 이수 학점], [평균 평점(GPA)]</span></li>
+                <li><strong>💡 실무 & 기출 포인트:</strong> 이 값들은 새로운 성적이 입력될 때마다 계속 변하고 다시 계산(동기화)되어야 하므로 데이터의 정합성(일치성)을 유지하기 매우 힘듭니다. <strong>따라서 가급적 적게(최소화) 만들어야 합니다!</strong> "파생속성은 많을수록 좋다"는 무조건 오답입니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 style="before: content: '🔑';">🔑 2. 엔터티 구성방식에 따른 분류 (역할이 무엇인가?)</h2>
+        <p>테이블 안에서 이 컬럼이 어떤 역할을 맡고 있는지(식별자인지 아닌지)에 따른 분류입니다.</p>
+        
+        <div class="grid-3">
+            <div class="grid-card">
+                <h3>① PK (기본키) 속성</h3>
+                <p>수많은 학생 중 특정 학생 1명을 완벽하게 찾아낼 수 있는(식별할 수 있는) 대표 속성입니다.</p>
+                <div class="analogy" style="margin-top:auto;">비유: <strong>[학번]</strong></div>
+            </div>
+            <div class="grid-card">
+                <h3>② FK (외래키) 속성</h3>
+                <p>다른 테이블(엔터티)과 관계를 맺기 위해 남의 테이블에서 빌려온 속성입니다.</p>
+                <div class="analogy">비유: 수강내역 테이블 안의 <strong>[학생 학번]</strong></div>
+            </div>
+            <div class="grid-card">
+                <h3>③ 일반 속성</h3>
+                <p>PK도 아니고 FK도 아닌, 그냥 데이터를 담고 있는 평범한 나머지 속성들입니다.</p>
+                <div class="analogy">비유: <strong>[이름], [키]</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 style="before: content: '🧩';">🧩 3. 분해 여부에 따른 분류 (쪼갤 수 있는가?)</h2>
+        
+        <ul class="attr-list">
+            <li class="attr-item">
+                <h3>① 단일 속성 (Simple Attribute)</h3>
+                <p>더 이상 의미를 쪼갤 수 없는 독립적인 속성. (예: <strong>[나이]</strong>, <strong>[성별]</strong>)</p>
+            </li>
+            <li class="attr-item">
+                <h3>② 복합 속성 (Composite Attribute)</h3>
+                <p>여러 개의 의미가 뭉쳐 있어서, 마음만 먹으면 쪼갤 수 있는 속성. (예: <strong>[주소]</strong> ➔ 시, 구, 동으로 분해 가능)</p>
+            </li>
+        </ul>
+
+        <div class="alert-box">
+            <h4>🚨 ③ 다중값 속성 (Multi-Valued Attribute) : "무조건 분리해라!"</h4>
+            <p>한 칸에 여러 개의 값을 가지는 속성입니다. 앞서 배웠듯 데이터베이스 속성 칸에는 값 1개만 들어가야(원자성) 하므로, 이런 다중값 속성은 <strong>반드시 별도의 새로운 하위 엔터티로 분리(1:M 관계)</strong>해야 합니다!</p>
+            <p style="margin-bottom:0;">🎓 <strong>비유:</strong> [전화번호] ➔ 집 번호, 핸드폰 번호 2개가 있다면 한 칸에 쉼표(,)로 넣지 말고 <strong>'학생_연락처' 테이블을 따로 만들어야 함!</strong> (제1정규화 위배 방지)</p>
+        </div>
+    </div>
+
+    <div class="section-card">
+        <h2 style="before: content: '🏷️';">🏷️ 4. 속성의 명명 규칙 (이름 짓기)</h2>
+        <p>엔터티와 마찬가지로 속성도 이름을 잘 지어야 합니다. 시험에 자주 나오는 O/X 기준입니다.</p>
+        
+        <table>
+            <tr>
+                <th width="15%">구분</th>
+                <th>설명 및 예시</th>
+            </tr>
+            <tr>
+                <td class="ox-o">O (권장)</td>
+                <td>해당 업무(수강신청)에서 사용하는 <strong>직관적이고 익숙한 이름</strong>을 씁니다.</td>
+            </tr>
+            <tr>
+                <td class="ox-x">X (금지)</td>
+                <td><strong>서술식(문장형) 이름은 절대 금지!</strong><br>(예: <code>수강신청을_한_과목의_이름</code> ➔ <code>과목명</code>으로 수정)</td>
+            </tr>
+            <tr>
+                <td class="ox-x">X (금지)</td>
+                <td>본인만 아는 <strong>약어(줄임말)</strong>는 가급적 쓰지 않습니다. (예: <code>수과명</code>)</td>
+            </tr>
+            <tr>
+                <td class="ox-o">O (권장)</td>
+                <td>전체 데이터 모델에서 <strong>유일한 명칭</strong>을 쓰는 것이 좋습니다.<br>(예: 그냥 <code>이름</code>이라고 하기보단 <code>학생이름</code>, <code>과목이름</code>으로 수식어를 붙여주면 조인(JOIN) 쿼리를 짤 때 충돌/헷갈림을 방지합니다.)</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🛡️';">🛡️ 5. 도메인 (Domain)의 완벽 이해 (중요!)</h2>
+        <p>SQLD 시험에서 <strong>'도메인'</strong>이라는 단어가 나오면 딱 1가지만 떠올리시면 됩니다. 바로 <strong>"그 칸(속성)에 들어갈 수 있는 데이터의 허용 범위와 물리적 규칙"</strong>입니다. 쓰레기 데이터가 들어오는 것을 막아주는 든든한 <strong>'입구 컷(문지기)'</strong> 역할을 합니다.</p>
+        
+        <ul style="margin-bottom: 20px;">
+            <li><strong>① 타입과 크기:</strong> "이 칸은 문자(VARCHAR)만 들어가고, 최대 10글자까지만 허용해!"</li>
+            <li><strong>② NOT NULL (필수 여부):</strong> "이 칸은 비워두면(NULL) 절대 안 돼! 무조건 입력해!"</li>
+            <li><strong>③ 제약사항 (CHECK 조건):</strong> "학생 성별 칸에는 오직 'M' 아니면 'F'만 들어와야 해!"</li>
+        </ul>
+
+        <h4>💻 실무 DB 생성 스크립트(DDL)에 적용된 도메인의 모습</h4>
+        <div class="terminal-box">
+            <span class="keyword">CREATE TABLE</span> 학생 (<br>
+            &nbsp;&nbsp;학번 <span class="keyword">VARCHAR2</span>(10) <span class="keyword">NOT NULL</span>, <span style="color:#7f8c8d;">-- 도메인: 10자리 문자, 필수</span><br>
+            &nbsp;&nbsp;이름 <span class="keyword">VARCHAR2</span>(20) <span class="keyword">NOT NULL</span>,<br>
+            &nbsp;&nbsp;성별 <span class="keyword">CHAR</span>(1) <span class="keyword">CHECK</span> (성별 <span class="keyword">IN</span> (<span class="string">'M'</span>, <span class="string">'F'</span>)) <span style="color:#7f8c8d;">-- 도메인: M 또는 F만 허용</span><br>
+            );
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
