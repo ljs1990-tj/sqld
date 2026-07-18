@@ -10,6 +10,8 @@
             --secondary: #34495e;
             --accent: #3498db;
             --important: #e74c3c;
+            --correct: #27ae60;
+            --wrong: #e74c3c;
             --bg-color: #f4f7f6;
             --card-bg: #ffffff;
         }
@@ -21,6 +23,7 @@
             line-height: 1.6;
             margin: 0;
             padding: 40px 20px;
+            padding-bottom: 150px; /* 하단 버튼 공간 확보 */
         }
 
         .container {
@@ -109,10 +112,103 @@
             margin-bottom: 10px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
         }
 
-        .options li:hover { background-color: #eaf2f8; }
+        /* 채점 전 호버 및 선택 효과 */
+        .options.active li:hover { 
+            background-color: #eaf2f8; 
+        }
+
+        .options.active li.selected {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        /* 채점 결과 스타일 */
+        .options li.correct-answer {
+            background-color: #e8f8f5;
+            color: var(--correct);
+            border: 2px solid var(--correct);
+            font-weight: bold;
+        }
+        
+        .options li.correct-answer::after {
+            content: ' (정답) ✅';
+            font-weight: bold;
+        }
+
+        .options li.wrong-answer {
+            background-color: #fdf2e9;
+            color: var(--wrong);
+            border: 2px solid var(--wrong);
+            text-decoration: line-through;
+            opacity: 0.8;
+        }
+
+        .options li.wrong-answer::after {
+            content: ' ❌';
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        /* 채점 영역 고정 바 */
+        .grade-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 20px;
+            box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .grade-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .grade-btn:hover {
+            background-color: #1a252f;
+        }
+
+        .score-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: none;
+        }
+        
+        .score-highlight {
+            color: var(--accent);
+            font-size: 2rem;
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 600px) {
+            .grade-panel {
+                flex-direction: column;
+                gap: 10px;
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -123,216 +219,331 @@
         <p>지금까지 배운 6가지 핵심 테마를 바탕으로 제작된 실전 20제입니다.<br><strong>⭐️ 필수 기출</strong> 마크가 붙은 문제는 무조건 맞추셔야 합니다!</p>
     </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q1.</span> 다음 중 데이터 모델링의 3가지 핵심 특징(성격)으로 올바르지 않은 것은?</div>
-        <ul class="options">
-            <li>① 추상화 (Abstraction)</li>
-            <li>② 단순화 (Simplification)</li>
-            <li>③ 상세화 (Specification)</li>
-            <li>④ 명확성 (Clarity)</li>
-        </ul>
-    </div>
+    <!-- 문제 리스트 영역 -->
+    <div id="questions-container">
+        <!-- JS가 작동할 때 쉽게 접근하기 위해 options에 active 클래스를 기본으로 추가합니다. -->
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q1.</span> 다음 중 데이터 모델링의 3가지 핵심 특징(성격)으로 올바르지 않은 것은?</div>
+            <ul class="options active" data-q="0">
+                <li>① 추상화 (Abstraction)</li>
+                <li>② 단순화 (Simplification)</li>
+                <li>③ 상세화 (Specification)</li>
+                <li>④ 명확성 (Clarity)</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q2.</span> 데이터 모델링의 세 가지 관점 중, 업무가 실제로 하고 있는 일이 무엇인지, 또는 무엇을 '어떻게(How)' 해야 하는지를 모델링하는 관점은?</div>
-        <ul class="options">
-            <li>① 데이터 관점</li>
-            <li>② 프로세스 관점</li>
-            <li>③ 상관 관점</li>
-            <li>④ 통합 관점</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q2.</span> 데이터 모델링의 세 가지 관점 중, 업무가 실제로 하고 있는 일이 무엇인지, 또는 무엇을 '어떻게(How)' 해야 하는지를 모델링하는 관점은?</div>
+            <ul class="options active" data-q="1">
+                <li>① 데이터 관점</li>
+                <li>② 프로세스 관점</li>
+                <li>③ 상관 관점</li>
+                <li>④ 통합 관점</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q3.</span> 시스템 개발 시 데이터 모델과 프로세스 모델을 교차 검증하기 위해 실무에서 주로 작성하는 매트릭스는 무엇인가?</div>
-        <ul class="options">
-            <li>① ERD (Entity Relationship Diagram)</li>
-            <li>② DFD (Data Flow Diagram)</li>
-            <li>③ CRUD 매트릭스</li>
-            <li>④ 요구사항 명세서</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q3.</span> 시스템 개발 시 데이터 모델과 프로세스 모델을 교차 검증하기 위해 실무에서 주로 작성하는 매트릭스는 무엇인가?</div>
+            <ul class="options active" data-q="2">
+                <li>① ERD (Entity Relationship Diagram)</li>
+                <li>② DFD (Data Flow Diagram)</li>
+                <li>③ CRUD 매트릭스</li>
+                <li>④ 요구사항 명세서</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q4.</span> 다음 중 데이터 모델링이 제공하는 기능(이점)이 아닌 것은?</div>
-        <ul class="options">
-            <li>① 시스템을 현재 또는 원하는 모습으로 가시화한다.</li>
-            <li>② 시스템을 구축하는 구조화된 틀을 제공한다.</li>
-            <li>③ 시스템의 동작 원리를 자동으로 프로그래밍해 준다.</li>
-            <li>④ 특정 목표에 따라 다양한 관점과 표현 방법을 제공한다.</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q4.</span> 다음 중 데이터 모델링이 제공하는 기능(이점)이 아닌 것은?</div>
+            <ul class="options active" data-q="3">
+                <li>① 시스템을 현재 또는 원하는 모습으로 가시화한다.</li>
+                <li>② 시스템을 구축하는 구조화된 틀을 제공한다.</li>
+                <li>③ 시스템의 동작 원리를 자동으로 프로그래밍해 준다.</li>
+                <li>④ 특정 목표에 따라 다양한 관점과 표현 방법을 제공한다.</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q5.</span> 데이터 모델링을 할 때 유의해야 할 '3대 죄악'에 해당하지 않는 것은?</div>
-        <ul class="options">
-            <li>① 중복 (Duplication)</li>
-            <li>② 비유연성 (Inflexibility)</li>
-            <li>③ 비정규화 (Denormalization)</li>
-            <li>④ 비일관성 (Inconsistency)</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q5.</span> 데이터 모델링을 할 때 유의해야 할 '3대 죄악'에 해당하지 않는 것은?</div>
+            <ul class="options active" data-q="4">
+                <li>① 중복 (Duplication)</li>
+                <li>② 비유연성 (Inflexibility)</li>
+                <li>③ 비정규화 (Denormalization)</li>
+                <li>④ 비일관성 (Inconsistency)</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q6.</span> 대학교에 '복수전공' 제도가 신설되어 수강신청 시스템의 사소한 업무 로직이 변경되었다. 그런데 이로 인해 데이터베이스 전체 구조를 뜯어고쳐야 하는 상황이 발생했다면, 이는 모델링의 어떤 유의점을 지키지 못한 것인가?</div>
-        <ul class="options">
-            <li>① 중복 (Duplication)</li>
-            <li>② 비유연성 (Inflexibility)</li>
-            <li>③ 비일관성 (Inconsistency)</li>
-            <li>④ 명확성 (Clarity)</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q6.</span> 대학교에 '복수전공' 제도가 신설되어 수강신청 시스템의 사소한 업무 로직이 변경되었다. 그런데 이로 인해 데이터베이스 전체 구조를 뜯어고쳐야 하는 상황이 발생했다면, 이는 모델링의 어떤 유의점을 지키지 못한 것인가?</div>
+            <ul class="options active" data-q="5">
+                <li>① 중복 (Duplication)</li>
+                <li>② 비유연성 (Inflexibility)</li>
+                <li>③ 비일관성 (Inconsistency)</li>
+                <li>④ 명확성 (Clarity)</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q7.</span> 데이터 모델링의 3단계 중, 데이터의 중복을 제거하는 '정규화'를 수행하며 시스템의 뼈대가 완성되는 가장 핵심적인 단계는?</div>
-        <ul class="options">
-            <li>① 개념적 데이터 모델링</li>
-            <li>② 논리적 데이터 모델링</li>
-            <li>③ 물리적 데이터 모델링</li>
-            <li>④ 통합 데이터 모델링</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q7.</span> 데이터 모델링의 3단계 중, 데이터의 중복을 제거하는 '정규화'를 수행하며 시스템의 뼈대가 완성되는 가장 핵심적인 단계는?</div>
+            <ul class="options active" data-q="6">
+                <li>① 개념적 데이터 모델링</li>
+                <li>② 논리적 데이터 모델링</li>
+                <li>③ 물리적 데이터 모델링</li>
+                <li>④ 통합 데이터 모델링</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q8.</span> 실제 컴퓨터 하드웨어의 성능, 디스크 저장 구조, 인덱스 등을 고려하여 특정 DBMS에 종속적인 도면을 그리는 모델링 단계는?</div>
-        <ul class="options">
-            <li>① 개념적 데이터 모델링</li>
-            <li>② 논리적 데이터 모델링</li>
-            <li>③ 물리적 데이터 모델링</li>
-            <li>④ 추상적 데이터 모델링</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q8.</span> 실제 컴퓨터 하드웨어의 성능, 디스크 저장 구조, 인덱스 등을 고려하여 특정 DBMS에 종속적인 도면을 그리는 모델링 단계는?</div>
+            <ul class="options active" data-q="7">
+                <li>① 개념적 데이터 모델링</li>
+                <li>② 논리적 데이터 모델링</li>
+                <li>③ 물리적 데이터 모델링</li>
+                <li>④ 추상적 데이터 모델링</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q9.</span> 데이터베이스의 3단계 스키마 구조 중, 모든 데이터 구조를 통합하여 정의한 뼈대이며 DB 전체에 단 1개만 존재하고 DBA가 관리하는 스키마는?</div>
-        <ul class="options">
-            <li>① 외부 스키마 (External Schema)</li>
-            <li>② 개념 스키마 (Conceptual Schema)</li>
-            <li>③ 내부 스키마 (Internal Schema)</li>
-            <li>④ 논리 스키마 (Logical Schema)</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q9.</span> 데이터베이스의 3단계 스키마 구조 중, 모든 데이터 구조를 통합하여 정의한 뼈대이며 DB 전체에 단 1개만 존재하고 DBA가 관리하는 스키마는?</div>
+            <ul class="options active" data-q="8">
+                <li>① 외부 스키마 (External Schema)</li>
+                <li>② 개념 스키마 (Conceptual Schema)</li>
+                <li>③ 내부 스키마 (Internal Schema)</li>
+                <li>④ 논리 스키마 (Logical Schema)</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q10.</span> 학생 A가 보는 '수강 시간표 화면'과 교수 B가 보는 '출석부 화면'이 다르듯, 사용자나 응용프로그램의 입장에서 필요한 DB의 논리적 부분만 보여주는 스키마는?</div>
-        <ul class="options">
-            <li>① 외부 스키마</li>
-            <li>② 개념 스키마</li>
-            <li>③ 내부 스키마</li>
-            <li>④ 물리 스키마</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q10.</span> 학생 A가 보는 '수강 시간표 화면'과 교수 B가 보는 '출석부 화면'이 다르듯, 사용자나 응용프로그램의 입장에서 필요한 DB의 논리적 부분만 보여주는 스키마는?</div>
+            <ul class="options active" data-q="9">
+                <li>① 외부 스키마</li>
+                <li>② 개념 스키마</li>
+                <li>③ 내부 스키마</li>
+                <li>④ 물리 스키마</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q11.</span> 데이터베이스 하드웨어 장치(저장소)를 구형 하드디스크에서 최신 SSD로 교체하거나 위치를 변경하더라도, 설계도(개념 스키마)나 응용프로그램에는 영향을 주지 않는 성질을 무엇이라 하는가?</div>
-        <ul class="options">
-            <li>① 논리적 독립성</li>
-            <li>② 물리적 독립성</li>
-            <li>③ 데이터 정합성</li>
-            <li>④ 추상화 독립성</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q11.</span> 데이터베이스 하드웨어 장치(저장소)를 구형 하드디스크에서 최신 SSD로 교체하거나 위치를 변경하더라도, 설계도(개념 스키마)나 응용프로그램에는 영향을 주지 않는 성질을 무엇이라 하는가?</div>
+            <ul class="options active" data-q="10">
+                <li>① 논리적 독립성</li>
+                <li>② 물리적 독립성</li>
+                <li>③ 데이터 정합성</li>
+                <li>④ 추상화 독립성</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q12.</span> ERD(Entity Relationship Diagram)를 작성할 때, 엔터티 간의 관계가 다수(Many)임을 나타내기 위해 '까마귀 발(Crow's Foot)' 모양을 사용하는 대표적인 표준 표기법은?</div>
-        <ul class="options">
-            <li>① Chen 표기법</li>
-            <li>② IE (Information Engineering) 표기법</li>
-            <li>③ UML 표기법</li>
-            <li>④ 객체지향 표기법</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q12.</span> ERD(Entity Relationship Diagram)를 작성할 때, 엔터티 간의 관계가 다수(Many)임을 나타내기 위해 '까마귀 발(Crow's Foot)' 모양을 사용하는 대표적인 표준 표기법은?</div>
+            <ul class="options active" data-q="11">
+                <li>① Chen 표기법</li>
+                <li>② IE (Information Engineering) 표기법</li>
+                <li>③ UML 표기법</li>
+                <li>④ 객체지향 표기법</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q13.</span> 다음 중 ERD(설계도)를 작성하는 6단계 절차의 순서로 가장 올바른 것은?</div>
-        <ul class="options">
-            <li>① 엔터티 도출 ➔ 관계 설정 ➔ 엔터티 배치 ➔ 관계명 ➔ 참여도 ➔ 필수 여부</li>
-            <li>② 엔터티 도출 ➔ 엔터티 배치 ➔ 관계 설정 ➔ 관계명 ➔ 참여도 ➔ 필수 여부</li>
-            <li>③ 엔터티 도출 ➔ 엔터티 배치 ➔ 관계명 ➔ 관계 설정 ➔ 필수 여부 ➔ 참여도</li>
-            <li>④ 엔터티 도출 ➔ 관계 설정 ➔ 관계명 ➔ 엔터티 배치 ➔ 참여도 ➔ 필수 여부</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q13.</span> 다음 중 ERD(설계도)를 작성하는 6단계 절차의 순서로 가장 올바른 것은?</div>
+            <ul class="options active" data-q="12">
+                <li>① 엔터티 도출 ➔ 관계 설정 ➔ 엔터티 배치 ➔ 관계명 ➔ 참여도 ➔ 필수 여부</li>
+                <li>② 엔터티 도출 ➔ 엔터티 배치 ➔ 관계 설정 ➔ 관계명 ➔ 참여도 ➔ 필수 여부</li>
+                <li>③ 엔터티 도출 ➔ 엔터티 배치 ➔ 관계명 ➔ 관계 설정 ➔ 필수 여부 ➔ 참여도</li>
+                <li>④ 엔터티 도출 ➔ 관계 설정 ➔ 관계명 ➔ 엔터티 배치 ➔ 참여도 ➔ 필수 여부</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q14.</span> ERD를 그릴 때, 가장 기준이 되고 중요한 핵심 엔터티는 도면의 어느 위치에 배치하는 가장 바람직한가?</div>
-        <ul class="options">
-            <li>① 우측 하단</li>
-            <li>② 우측 상단</li>
-            <li>③ 좌측 하단</li>
-            <li>④ 좌측 상단</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q14.</span> ERD를 그릴 때, 가장 기준이 되고 중요한 핵심 엔터티는 도면의 어느 위치에 배치하는 가장 바람직한가?</div>
+            <ul class="options active" data-q="13">
+                <li>① 우측 하단</li>
+                <li>② 우측 상단</li>
+                <li>③ 좌측 하단</li>
+                <li>④ 좌측 상단</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q15.</span> IE 표기법에서 관계 선의 끝에 동그라미(O)가 그려져 있다면, 이는 무엇을 의미하는가?</div>
-        <ul class="options">
-            <li>① 이 관계는 다수(Many)를 의미한다.</li>
-            <li>② 이 관계는 1대1(1:1)을 의미한다.</li>
-            <li>③ 이 관계는 필수가 아닌 선택(Optional) 참여를 의미한다.</li>
-            <li>④ 이 관계는 반드시 존재해야 하는 필수(Mandatory) 참여를 의미한다.</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q15.</span> IE 표기법에서 관계 선의 끝에 동그라미(O)가 그려져 있다면, 이는 무엇을 의미하는가?</div>
+            <ul class="options active" data-q="14">
+                <li>① 이 관계는 다수(Many)를 의미한다.</li>
+                <li>② 이 관계는 1대1(1:1)을 의미한다.</li>
+                <li>③ 이 관계는 필수가 아닌 선택(Optional) 참여를 의미한다.</li>
+                <li>④ 이 관계는 반드시 존재해야 하는 필수(Mandatory) 참여를 의미한다.</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q16.</span> 대학교의 ERD를 보았더니 <code>[학과] ───|초───────O∈ [학생]</code> 으로 그려져 있었다. 이 모델에 대한 해석으로 올바르지 않은 것은?</div>
-        <ul class="options">
-            <li>① 하나의 학과에는 여러 명의 학생이 소속될 수 있다.</li>
-            <li>② 아직 학생이 단 한 명도 없는 신설 학과가 존재할 수 있다.</li>
-            <li>③ 학생은 반드시 하나의 학과에 소속되어야 한다.</li>
-            <li>④ 한 명의 학생은 여러 학과에 동시에 소속될 수 있다.</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q16.</span> 대학교의 ERD를 보았더니 <code>[학과] ───|초───────O∈ [학생]</code> 으로 그려져 있었다. 이 모델에 대한 해석으로 올바르지 않은 것은?</div>
+            <ul class="options active" data-q="15">
+                <li>① 하나의 학과에는 여러 명의 학생이 소속될 수 있다.</li>
+                <li>② 아직 학생이 단 한 명도 없는 신설 학과가 존재할 수 있다.</li>
+                <li>③ 학생은 반드시 하나의 학과에 소속되어야 한다.</li>
+                <li>④ 한 명의 학생은 여러 학과에 동시에 소속될 수 있다.</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q17.</span> 외부 스키마와 개념 스키마 사이의 연결 고리를 뜻하며, 개념 스키마(구조)가 바뀌어도 외부 스키마(사용자 화면)가 영향을 받지 않도록 논리적 독립성을 보장해 주는 매핑(Mapping)은?</div>
-        <ul class="options">
-            <li>① 물리적 사상</li>
-            <li>② 개념적/내부적 사상</li>
-            <li>③ 외부적/개념적 사상 (논리적 사상)</li>
-            <li>④ 구조적 사상</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q17.</span> 외부 스키마와 개념 스키마 사이의 연결 고리를 뜻하며, 개념 스키마(구조)가 바뀌어도 외부 스키마(사용자 화면)가 영향을 받지 않도록 논리적 독립성을 보장해 주는 매핑(Mapping)은?</div>
+            <ul class="options active" data-q="16">
+                <li>① 물리적 사상</li>
+                <li>② 개념적/내부적 사상</li>
+                <li>③ 외부적/개념적 사상 (논리적 사상)</li>
+                <li>④ 구조적 사상</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q18.</span> ERD를 그릴 때 엔터티 간에 꼬리를 물고 무한 루프를 도는 형태를 지양해야 한다. 이러한 관계를 무엇이라 부르는가?</div>
-        <ul class="options">
-            <li>① 식별자 관계 (Identifying)</li>
-            <li>② 비식별자 관계 (Non-Identifying)</li>
-            <li>③ 순환 관계 (Circle / Recursive)</li>
-            <li>④ 상호배타적 관계 (Exclusive)</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q18.</span> ERD를 그릴 때 엔터티 간에 꼬리를 물고 무한 루프를 도는 형태를 지양해야 한다. 이러한 관계를 무엇이라 부르는가?</div>
+            <ul class="options active" data-q="17">
+                <li>① 식별자 관계 (Identifying)</li>
+                <li>② 비식별자 관계 (Non-Identifying)</li>
+                <li>③ 순환 관계 (Circle / Recursive)</li>
+                <li>④ 상호배타적 관계 (Exclusive)</li>
+            </ul>
+        </div>
 
-    <div class="question-card is-important">
-        <div class="badge-important">⭐️ 필수 기출</div>
-        <div class="q-text"><span class="q-number">Q19.</span> 데이터 모델링의 3대 필수 요소는 대상, 특징, 그리고 연관성이다. 이를 뜻하는 영문 용어가 바르게 짝지어진 것은?</div>
-        <ul class="options">
-            <li>① Entity - Attribute - Relationship</li>
-            <li>② Object - Property - Method</li>
-            <li>③ Table - Column - Join</li>
-            <li>④ Entity - Process - Data</li>
-        </ul>
-    </div>
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 필수 기출</div>
+            <div class="q-text"><span class="q-number">Q19.</span> 데이터 모델링의 3대 필수 요소는 대상, 특징, 그리고 연관성이다. 이를 뜻하는 영문 용어가 바르게 짝지어진 것은?</div>
+            <ul class="options active" data-q="18">
+                <li>① Entity - Attribute - Relationship</li>
+                <li>② Object - Property - Method</li>
+                <li>③ Table - Column - Join</li>
+                <li>④ Entity - Process - Data</li>
+            </ul>
+        </div>
 
-    <div class="question-card">
-        <div class="q-text"><span class="q-number">Q20.</span> "총장님의 지시로 수강신청 시스템의 큰 그림을 그리기 위해 핵심 엔터티만 도출하고 전사적인 관점에서 스케치를 진행했다." 이 단계는 데이터 모델링 3단계 중 어느 것에 해당하는가?</div>
-        <ul class="options">
-            <li>① 외부적 데이터 모델링</li>
-            <li>② 개념적 데이터 모델링</li>
-            <li>③ 논리적 데이터 모델링</li>
-            <li>④ 물리적 데이터 모델링</li>
-        </ul>
-    </div>
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q20.</span> "총장님의 지시로 수강신청 시스템의 큰 그림을 그리기 위해 핵심 엔터티만 도출하고 전사적인 관점에서 스케치를 진행했다." 이 단계는 데이터 모델링 3단계 중 어느 것에 해당하는가?</div>
+            <ul class="options active" data-q="19">
+                <li>① 외부적 데이터 모델링</li>
+                <li>② 개념적 데이터 모델링</li>
+                <li>③ 논리적 데이터 모델링</li>
+                <li>④ 물리적 데이터 모델링</li>
+            </ul>
+        </div>
 
+    </div>
 </div>
+
+<!-- 하단 채점 영역 -->
+<div class="grade-panel">
+    <button id="grade-btn" class="grade-btn">📝 채점하기</button>
+    <div id="score-display" class="score-display">
+        총점: <span id="final-score" class="score-highlight">0</span> / 100점 
+        <span id="score-message" style="font-size:1.1rem; color:#7f8c8d; margin-left:10px;"></span>
+    </div>
+</div>
+
+<script>
+    // 0부터 시작하는 각 문항의 정답 배열 (총 20문제)
+    // 1번:③, 2번:②, 3번:③, 4번:③, 5번:③, 6번:②, 7번:②, 8번:③, 9번:②, 10번:①
+    // 11번:②, 12번:②, 13번:②, 14번:④, 15번:③, 16번:④, 17번:③, 18번:③, 19번:①, 20번:②
+    const correctAnswers = [
+        2, 1, 2, 2, 2, 
+        1, 1, 2, 1, 0, 
+        1, 1, 1, 3, 2, 
+        3, 2, 2, 0, 1
+    ];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const optionLists = document.querySelectorAll(".options");
+        const gradeBtn = document.getElementById("grade-btn");
+        let isGraded = false;
+
+        // 보기 선택 이벤트
+        optionLists.forEach(ul => {
+            const lis = ul.querySelectorAll("li");
+            lis.forEach((li, index) => {
+                li.addEventListener("click", function() {
+                    if (isGraded) return; // 채점 후에는 클릭 불가능
+
+                    // 다른 보기 선택 해제
+                    lis.forEach(item => item.classList.remove("selected"));
+                    
+                    // 현재 보기 선택 (인덱스 저장)
+                    this.classList.add("selected");
+                    ul.setAttribute('data-selected', index);
+                });
+            });
+        });
+
+        // 채점하기 버튼 이벤트
+        gradeBtn.addEventListener("click", function() {
+            if (isGraded) {
+                // 이미 채점된 경우 다시 초기화(새로고침)
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => location.reload(), 500);
+                return;
+            }
+
+            let correctCount = 0;
+            let answeredCount = 0;
+
+            optionLists.forEach((ul, questionIndex) => {
+                const lis = ul.querySelectorAll("li");
+                const selectedIndexStr = ul.getAttribute('data-selected');
+                const correctAnswerIndex = correctAnswers[questionIndex];
+
+                // 클릭 방지 클래스 제거 (hover 비활성화)
+                ul.classList.remove("active");
+
+                if (selectedIndexStr !== null) {
+                    answeredCount++;
+                    const selectedIndex = parseInt(selectedIndexStr);
+
+                    if (selectedIndex === correctAnswerIndex) {
+                        // 정답을 맞춘 경우
+                        lis[selectedIndex].classList.add("correct-answer");
+                        correctCount++;
+                    } else {
+                        // 틀린 경우 (선택한건 오답처리, 실제 정답도 표시)
+                        lis[selectedIndex].classList.add("wrong-answer");
+                        lis[correctAnswerIndex].classList.add("correct-answer");
+                    }
+                } else {
+                    // 선택하지 않은 경우, 정답만 표시
+                    lis[correctAnswerIndex].classList.add("correct-answer");
+                }
+            });
+
+            // 점수 계산 및 표시
+            const score = correctCount * 5; // 문제당 5점
+            document.getElementById("final-score").textContent = score;
+            
+            let message = "";
+            if(score >= 80) message = "🎉 훌륭합니다! 합격 안정권입니다.";
+            else if(score >= 60) message = "👏 잘하셨어요! 조금만 더 다듬으면 완벽해요.";
+            else message = "💪 오답 노트로 개념을 한 번 더 복습해 볼까요?";
+            
+            document.getElementById("score-message").textContent = message;
+
+            document.getElementById("score-display").style.display = "block";
+            
+            // 버튼 상태 변경
+            gradeBtn.textContent = "🔄 다시 풀기";
+            gradeBtn.style.backgroundColor = "#95a5a6";
+            
+            isGraded = true;
+
+            // 안 푼 문제가 있으면 알림
+            if (answeredCount < 20) {
+                alert(`채점이 완료되었습니다.\n풀지 않은 문제가 ${20 - answeredCount}개 있습니다.`);
+            }
+
+            // 부드럽게 화면 위로 올리기
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+</script>
 
 </body>
 </html>
