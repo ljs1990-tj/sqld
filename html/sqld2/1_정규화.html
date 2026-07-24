@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: 정규화(Normalization) 완벽 정복</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #3b82f6;
+            --accent: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.4rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #cbd5e1; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.7rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before { margin-right: 12px; font-size: 1.5rem; }
+
+        /* 함수적 종속성 박스 */
+        .fd-box {
+            background: #eff6ff;
+            border: 2px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .fd-formula {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #1d4ed8;
+            letter-spacing: 2px;
+            margin: 15px 0;
+        }
+
+        .fd-desc {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 15px;
+        }
+
+        .fd-item { background: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .fd-item strong { color: var(--secondary); font-size: 1.1rem; }
+
+        /* 정규화 단계별 디자인 */
+        .nf-stage {
+            border-left: 5px solid var(--secondary);
+            padding-left: 25px;
+            margin-bottom: 50px;
+        }
+
+        .nf-stage h3 {
+            color: var(--secondary);
+            font-size: 1.4rem;
+            margin-top: 0;
+            display: inline-block;
+            background: #eff6ff;
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        /* 테이블 비교 (Before / After) */
+        .table-compare {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+            align-items: flex-start;
+        }
+
+        .table-wrap { flex: 1; }
+        
+        .table-wrap h4 {
+            text-align: center;
+            margin-top: 0;
+            padding: 8px;
+            border-radius: 6px 6px 0 0;
+            margin-bottom: 0;
+            color: white;
+        }
+
+        .tb-before h4 { background-color: var(--accent); }
+        .tb-after h4 { background-color: var(--success); }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        th, td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+        th { background-color: #f1f5f9; color: var(--primary); }
+        
+        .pk-col { background-color: #fef3c7 !important; font-weight: bold; }
+        .bad-cell { background-color: #fee2e2; color: #b91c1c; font-weight: bold; }
+        .good-cell { background-color: #d1fae5; color: #047857; font-weight: bold; }
+
+        /* 화살표 */
+        .arrow-right {
+            display: flex;
+            align-items: center;
+            font-size: 2rem;
+            color: #94a3b8;
+            margin-top: 40px;
+        }
+
+        /* 기출 함정/팁 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); }
+
+        /* 1초 암기 박스 */
+        .memorize-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .memorize-box h2 { border: none; justify-content: center; color: #facc15; }
+        .mnemonic { font-size: 2.5rem; font-weight: 900; letter-spacing: 10px; color: #38bdf8; margin: 20px 0; }
+
+        @media (max-width: 768px) {
+            .table-compare { flex-direction: column; }
+            .arrow-right { display: none; }
+            .fd-desc { flex-direction: column; gap: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🗡️ 1과목 2장: 정규화 (Normalization) 완벽 정복</h1>
+        <p>삽입/갱신/삭제 이상현상이라는 치명적인 버그를 막기 위해,<br>뚱뚱해진 테이블을 '수학적 규칙'에 따라 논리적으로 쪼개는 마법의 과정입니다.</p>
+    </div>
+
+    <!-- 1. 함수적 종속성 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔗';">1. 정규화의 핵심 원리: 함수적 종속성 (Functional Dependency)</h2>
+        <p>테이블을 마음대로 쪼개면 데이터가 박살 납니다. 반드시 <strong>'누가 누구를 결정짓는가?'</strong>라는 상하관계(종속성)를 따져서 분리해야 합니다.</p>
+
+        <div class="fd-box">
+            <div style="color: #64748b; font-weight: bold;">[데이터베이스 공식 표기법]</div>
+            <div class="fd-formula">X ➔ Y</div>
+            <div style="font-size: 1.1rem; color: #334155;">"X의 값을 알면 Y의 값을 무조건 1개로 확정 지을 수 있다."</div>
+            
+            <div class="fd-desc">
+                <div class="fd-item">
+                    <strong>X = 결정자 (Determinant)</strong><br>
+                    ➔ 대장 (예: <code>학번</code>, <code>주민번호</code>)
+                </div>
+                <div class="fd-item">
+                    <strong>Y = 종속자 (Dependent)</strong><br>
+                    ➔ 부하 직원 (예: <code>이름</code>, <code>학과명</code>)
+                </div>
+            </div>
+        </div>
+
+        <p>🎓 <strong>수강신청 비유:</strong> <code>학번</code>을 알면 그 학생의 <code>이름</code>은 무조건 1개로 튀어나옵니다. 따라서 <strong>"이름은 학번에 함수적으로 종속된다"</strong>라고 말하며, 정규화는 이 종속성들을 끼리끼리 모아주는 작업입니다.</p>
+    </div>
+
+    <!-- 2. 제1정규형 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔪';">2. 정규화의 단계별 해부 (1NF ~ BCNF)</h2>
+        
+        <!-- 1NF -->
+        <div class="nf-stage">
+            <h3>제1정규형 (1NF) : 원자성 확보</h3>
+            <p><strong>규칙:</strong> 테이블의 모든 속성(칸)은 반드시 <strong>오직 1개의 값(원자값)</strong>만 가져야 합니다. 다중값(쉼표로 연결된 값)이나 반복되는 그룹이 있으면 안 됩니다.</p>
+            
+            <div class="table-compare">
+                <div class="table-wrap tb-before">
+                    <h4>[위반 테이블]</h4>
+                    <table>
+                        <tr><th class="pk-col">학번(PK)</th><th>이름</th><th>수강과목</th></tr>
+                        <tr><td>101</td><td>옥한빛</td><td class="bad-cell">데이터베이스, 자바</td></tr>
+                    </table>
+                    <p style="text-align:center; font-size:0.85rem; color:#64748b;">(하나의 칸에 과목 2개가 들어감! ➔ 제1정규형 위배)</p>
+                </div>
+                <div class="arrow-right">➔</div>
+                <div class="table-wrap tb-after">
+                    <h4>[1NF 달성 테이블]</h4>
+                    <table>
+                        <tr><th class="pk-col">학번(PK)</th><th class="pk-col">과목(PK)</th><th>이름</th></tr>
+                        <tr><td>101</td><td>데이터베이스</td><td>옥한빛</td></tr>
+                        <tr><td>101</td><td>자바</td><td>옥한빛</td></tr>
+                    </table>
+                    <p style="text-align:center; font-size:0.85rem; color:#64748b;">(행(Row)을 쪼개서 1칸에 1개씩만 담음)</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2NF -->
+        <div class="nf-stage">
+            <h3>제2정규형 (2NF) : 부분 함수 종속성 제거 (완전 함수 종속)</h3>
+            <p><strong>규칙:</strong> 기본키(PK)가 <strong>2개 이상 묶인 '복합키'일 때만 발생</strong>합니다. 일반 속성들이 복합키 전체에 종속되지 않고, <strong>키의 일부분에만 얍삽하게 종속된 놈들(부분 종속)을 떼어내어 새 테이블로 분리</strong>해야 합니다.</p>
+            
+            <div class="table-compare">
+                <div class="table-wrap tb-before">
+                    <h4>[위반: 성적 테이블]</h4>
+                    <table>
+                        <tr><th class="pk-col">학번(PK)</th><th class="pk-col">과목코드(PK)</th><th>성적</th><th>과목명</th></tr>
+                        <tr><td>101</td><td>DB01</td><td>A</td><td class="bad-cell">데이터베이스</td></tr>
+                    </table>
+                    <p style="text-align:center; font-size:0.85rem; color:#64748b;">(과목명은 '학번'과는 아무 상관 없고 '과목코드'에만 종속됨 ➔ 부분 종속 발생!)</p>
+                </div>
+                <div class="arrow-right">➔</div>
+                <div class="table-wrap tb-after">
+                    <h4>[2NF 달성: 2개로 쪼갬]</h4>
+                    <table style="margin-bottom: 10px;">
+                        <tr><th class="pk-col">학번(PK)</th><th class="pk-col">과목코드(PK)</th><th>성적</th></tr>
+                        <tr><td>101</td><td>DB01</td><td>A</td></tr>
+                    </table>
+                    <table>
+                        <tr><th class="pk-col">과목코드(PK)</th><th>과목명</th></tr>
+                        <tr><td>DB01</td><td class="good-cell">데이터베이스</td></tr>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="alert-box">
+                <h4>🚨 기출 함정 포인트</h4>
+                <p>만약 어떤 테이블의 <strong>PK(기본키)가 단 1개의 컬럼으로만 이루어져 있다면, 그 테이블은 묻지도 따지지도 않고 자동으로 제2정규형(2NF)을 만족</strong>합니다! (쪼개질 부분이 없으니까요!)</p>
+            </div>
+        </div>
+
+        <!-- 3NF -->
+        <div class="nf-stage">
+            <h3>제3정규형 (3NF) : 이행 함수 종속성 제거</h3>
+            <p><strong>규칙:</strong> 일반 속성들끼리 꼬리를 물고 종속되는 <strong>(A ➔ B ➔ C) 구조를 끊어내야</strong> 합니다. 즉, PK가 아닌 일반 속성이 다른 일반 속성을 결정하면 안 됩니다.</p>
+            
+            <div class="table-compare">
+                <div class="table-wrap tb-before">
+                    <h4>[위반: 학생 테이블]</h4>
+                    <table>
+                        <tr><th class="pk-col">학번(PK)</th><th>이름</th><th>지도교수</th><th>교수연구실</th></tr>
+                        <tr><td>101</td><td>옥한빛</td><td>김코딩</td><td class="bad-cell">공학관 301호</td></tr>
+                    </table>
+                    <p style="text-align:center; font-size:0.85rem; color:#64748b;">(학번 ➔ 지도교수 ➔ 교수연구실 꼬리물기 발생! 연구실은 학번이 아니라 교수에게 종속됨)</p>
+                </div>
+                <div class="arrow-right">➔</div>
+                <div class="table-wrap tb-after">
+                    <h4>[3NF 달성: 2개로 쪼갬]</h4>
+                    <table style="margin-bottom: 10px;">
+                        <tr><th class="pk-col">학번(PK)</th><th>이름</th><th>지도교수(FK)</th></tr>
+                        <tr><td>101</td><td>옥한빛</td><td>김코딩</td></tr>
+                    </table>
+                    <table>
+                        <tr><th class="pk-col">지도교수(PK)</th><th>교수연구실</th></tr>
+                        <tr><td>김코딩</td><td class="good-cell">공학관 301호</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- BCNF -->
+        <div class="nf-stage" style="border-left-color: #8b5cf6;">
+            <h3 style="color: #8b5cf6; background: #f3e8ff;">BCNF (보이스-코드 정규형) : 결정자는 무조건 후보키!</h3>
+            <p><strong>규칙:</strong> 3정규형까지 다 맞췄는데도 발생하는 기형적인 구조입니다. <strong>일반 속성(부하직원)이 감히 기본키(PK)의 일부분을 결정짓는 하극상</strong>이 발생할 때, 이를 떼어냅니다.</p>
+
+            <div class="table-compare">
+                <div class="table-wrap tb-before">
+                    <h4 style="background-color: var(--accent);">[위반: 수강 테이블]</h4>
+                    <table>
+                        <tr><th class="pk-col">학번(PK)</th><th class="pk-col">특강명(PK)</th><th>강사</th></tr>
+                        <tr><td>101</td><td class="bad-cell">데이터베이스</td><td class="bad-cell">김코딩</td></tr>
+                        <tr><td>102</td><td>데이터베이스</td><td>김코딩</td></tr>
+                    </table>
+                    <p style="text-align:center; font-size:0.85rem; color:#64748b;">(일반 속성인 '강사'가 PK의 일부인 '특강명'을 결정함 ➔ BCNF 위배!)</p>
+                </div>
+                <div class="arrow-right">➔</div>
+                <div class="table-wrap tb-after">
+                    <h4 style="background-color: var(--success);">[BCNF 달성: 2개로 쪼갬]</h4>
+                    <table style="margin-bottom: 10px;">
+                        <tr><th class="pk-col">학번(PK)</th><th class="pk-col">강사(PK/FK)</th></tr>
+                        <tr><td>101</td><td>김코딩</td></tr>
+                        <tr><td>102</td><td>김코딩</td></tr>
+                    </table>
+                    <table>
+                        <tr><th class="pk-col">강사(PK)</th><th>특강명</th></tr>
+                        <tr><td class="good-cell">김코딩</td><td class="good-cell">데이터베이스</td></tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1초컷 암기 -->
+    <div class="memorize-box">
+        <h2>🎯 실전 시험장 1초 컷 암기 공식</h2>
+        <p style="font-size: 1.1rem; opacity: 0.9;">시험 문제에서 "이행 종속성을 제거하는 단계는?" 이라 물으면 바로 찍을 수 있게 앞글자만 따서 외웁니다.</p>
+        
+        <div class="mnemonic">원 · 부 · 이 · 결</div>
+        
+        <ul style="text-align: left; max-width: 500px; margin: 0 auto; font-size: 1.2rem; line-height: 1.8; list-style: none; padding: 0;">
+            <li><strong>[1NF] 원:</strong> <span style="color:#38bdf8;">원</span>자성 확보</li>
+            <li><strong>[2NF] 부:</strong> <span style="color:#38bdf8;">부</span>분 함수 종속성 제거</li>
+            <li><strong>[3NF] 이:</strong> <span style="color:#38bdf8;">이</span>행 함수 종속성 제거</li>
+            <li><strong>[BCNF] 결:</strong> <span style="color:#38bdf8;">결</span>정자 함수 종속 제거</li>
+        </ul>
+        <p style="margin-top: 20px; font-size: 0.95rem; color: #94a3b8;">※ 뒤에 다치종속(4NF), 조인종속(5NF)도 있지만 SQLD에서는 보통 BCNF(결)까지만 출제됩니다.</p>
+    </div>
+
+</div>
+
+</body>
+</html>

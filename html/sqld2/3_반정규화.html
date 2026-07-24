@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: 반정규화와 대용량 데이터 처리</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #6366f1; /* Indigo */
+            --danger: #ef4444; /* Red for De-normalization */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #1e293b, #312e81);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.1rem; color: #c7d2fe; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 35px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before { margin-right: 10px; font-size: 1.4rem; }
+
+        /* 프로세스 화살표 (반정규화 절차) */
+        .process-steps {
+            display: flex;
+            align-items: stretch;
+            gap: 15px;
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .step-box {
+            flex: 1;
+            background: #ffffff;
+            border: 2px solid var(--secondary);
+            border-radius: 10px;
+            padding: 20px;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .step-box h3 {
+            color: var(--secondary);
+            margin-top: 0;
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+        }
+
+        .step-box p { font-size: 0.95rem; margin: 0; color: #475569; }
+        
+        .step-arrow {
+            display: flex;
+            align-items: center;
+            color: var(--secondary);
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* 3단 분리 카드 (슈퍼/서브 타입) */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .type-card {
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .type-card h3 {
+            margin-top: 0;
+            color: var(--primary);
+            border-bottom: 2px dashed #94a3b8;
+            padding-bottom: 10px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+        }
+
+        /* 파티셔닝 박스 */
+        .partition-list { list-style: none; padding: 0; }
+        .partition-item {
+            display: flex;
+            background: white;
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .partition-title {
+            width: 150px;
+            font-weight: bold;
+            color: var(--success);
+            font-size: 1.2rem;
+        }
+        .partition-desc { flex: 1; }
+
+        /* 기출 경고 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--danger);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+        }
+
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--danger); font-size: 1.1rem; }
+        
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fde047 40%); font-weight: bold; color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .process-steps { flex-direction: column; }
+            .step-arrow { justify-content: center; transform: rotate(90deg); margin: 10px 0; }
+            .partition-item { flex-direction: column; }
+            .partition-title { margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🚀 1과목 2장 심화: 반정규화와 대용량 데이터 처리</h1>
+        <p>정규화로 예쁘게 쪼개둔 테이블이 실무의 거대한 트래픽을 만나면 조회(SELECT) 속도가 무너집니다.<br>데이터의 무결성을 조금 포기하더라도, 응답 속도(성능)를 끌어올리는 현실적인 스킬들을 배웁니다.</p>
+    </div>
+
+    <!-- 1. 반정규화 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔨';">1. 반정규화 (De-normalization) : "조인(JOIN) 지옥 탈출"</h2>
+        <p>정규화된 엔터티, 속성, 관계를 <strong>시스템 성능 향상과 개발/운영의 단순화를 위해 중복, 통합, 분리</strong> 등을 수행하는 데이터 모델링 기법입니다.</p>
+        <p>🎓 <strong>수강신청 비유:</strong> "학생 전체 평균 학점을 구해주세요!" 할 때마다 5개 테이블을 조인해서 계산하면 학교 서버가 뻗습니다. 차라리 <strong>[학생] 테이블에 '평균학점' 컬럼을 중복으로 하나 파서(반정규화)</strong> 점수가 바뀔 때마다 업데이트해두고, 조회할 땐 그 칸만 빠르게 읽는 전략입니다.</p>
+
+        <div class="alert-box">
+            <h4>🚨 기출 출제 0순위: 반정규화 적용 3단계 절차</h4>
+            <p>반정규화는 데이터의 정합성을 깨뜨릴 위험이 크므로 최후의 수단으로 써야 합니다. 무턱대고 합치는 것이 아니라 <strong>반드시 아래의 3단계 순서를 지켜야 하며, 시험에서 순서 맞추기 문제로 100% 출제</strong>됩니다.</p>
+        </div>
+
+        <div class="process-steps">
+            <div class="step-box">
+                <h3>① 반정규화 대상 조사</h3>
+                <p>진짜로 데이터가 너무 많거나, 자주 엄청난 조인(JOIN)이 걸려서 성능이 심각하게 떨어지는지 조사합니다.</p>
+            </div>
+            <div class="step-arrow">➔</div>
+            <div class="step-box" style="border-color: var(--danger); background: #fef2f2;">
+                <h3 style="color: var(--danger);">② 다른 방법 유도 검토<br>(★가장 중요)</h3>
+                <p>반정규화 대신 <strong>뷰(VIEW)</strong>를 만들거나, <strong>인덱스(Index)</strong> 조정, <strong>클러스터링</strong>, 어플리케이션(코드) 단의 로직 변경으로 해결할 수 없는지 먼저 검토합니다.</p>
+            </div>
+            <div class="step-arrow">➔</div>
+            <div class="step-box">
+                <h3>③ 반정규화 적용</h3>
+                <p>다른 방법으로도 답이 없을 때, 최후의 수단으로 테이블, 속성, 관계를 반정규화(중복 허용) 합니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 반정규화 기법 -->
+    <div class="section-card">
+        <h2 style="before: content: '🛠️';">2. 반정규화의 대표적인 기법들</h2>
+        <p>무엇을 쪼개거나 합치느냐에 따라 크게 3가지로 나뉩니다.</p>
+
+        <ul>
+            <li><strong>테이블 반정규화:</strong>
+                <ul>
+                    <li><strong>테이블 병합:</strong> 1:1, 1:M, 슈퍼/서브 타입 테이블을 그냥 하나로 합쳐버림.</li>
+                    <li><strong>테이블 분할:</strong> 테이블 1개가 덩치가 너무 크면, 수직(컬럼 기준) 또는 수평(로우 기준)으로 찢어버림.</li>
+                </ul>
+            </li>
+            <li style="margin-top: 10px;"><strong>컬럼 반정규화 (가장 흔함):</strong>
+                <ul>
+                    <li><span class="highlight">중복 컬럼 추가:</span> 조인을 피하려고 A테이블에 있는 컬럼을 B테이블에도 똑같이 복사해 둠.</li>
+                    <li><span class="highlight">파생 컬럼 추가:</span> 미리 계산된 값(총합, 평균, 누적액)을 별도의 컬럼으로 만들어 둠.</li>
+                    <li><span class="highlight">이력 테이블 컬럼 추가:</span> 이력 데이터를 조회할 때 최근 값을 찾기 편하도록 '최근 변경일시' 같은 컬럼을 추가함.</li>
+                </ul>
+            </li>
+            <li style="margin-top: 10px;"><strong>관계 반정규화:</strong> 중복된 관계(선)를 추가하여 조인 경로를 단축함. (테이블이나 컬럼과 달리 무결성이 깨지지 않는 장점이 있음)</li>
+        </ul>
+    </div>
+
+    <!-- 3. 대용량 데이터 성능 (슈퍼/서브 타입) -->
+    <div class="section-card">
+        <h2 style="before: content: '🧱';">3. 대용량 데이터 성능 1: 슈퍼/서브 타입 모델 변환</h2>
+        <p>논리적 모델에서 공통 부분(슈퍼 타입)과 고유 부분(서브 타입)을 분리해 둔 것을, 실제 DB(물리 모델)에 구현할 때 데이터 양과 트랜잭션 성격에 따라 3가지 방법 중 하나를 선택합니다.</p>
+
+        <div class="grid-3">
+            <div class="type-card">
+                <span class="type-badge" style="background:#3b82f6;">개별 테이블 (OneToOne)</span>
+                <h3>1:1 타입 (OneToOne)</h3>
+                <p>슈퍼 타입과 서브 타입을 <strong>각각 독립적인 1:1 테이블로 모두 쪼개서</strong> 만듭니다.</p>
+                <ul style="padding-left: 20px; font-size: 0.9rem;">
+                    <li><strong>장점:</strong> 테이블이 분리되어 있어 용량이 적고 구조가 명확함.</li>
+                    <li><strong>단점:</strong> 정보를 볼 때마다 무조건 조인(JOIN)을 해야 해서 성능 저하 발생 가능.</li>
+                </ul>
+            </div>
+            
+            <div class="type-card">
+                <span class="type-badge" style="background:#8b5cf6;">슈퍼+서브 병합 (Plus)</span>
+                <h3>플러스 타입 (Plus)</h3>
+                <p>슈퍼 타입과 서브 타입을 <strong>결합(슈퍼+서브A, 슈퍼+서브B)하여 여러 개의 테이블</strong>로 만듭니다.</p>
+                <ul style="padding-left: 20px; font-size: 0.9rem;">
+                    <li><strong>장점:</strong> 조인이 감소하고 서브 타입별로 트랜잭션이 독립적일 때 아주 좋음.</li>
+                    <li><strong>단점:</strong> 다른 서브 타입들끼리 합쳐서 봐야 할 때 쿼리(UNION ALL)가 복잡해짐.</li>
+                </ul>
+            </div>
+
+            <div class="type-card">
+                <span class="type-badge" style="background:#ef4444;">통합 테이블 (Single)</span>
+                <h3>싱글 타입 (Single)</h3>
+                <p>조인이 귀찮으니 슈퍼와 서브 타입을 모두 뭉쳐서 <strong>하나의 거대한 통합 테이블</strong>로 만들어버립니다.</p>
+                <ul style="padding-left: 20px; font-size: 0.9rem;">
+                    <li><strong>장점:</strong> 조인이 아예 발생하지 않아 단순 조회 성능이 압도적임.</li>
+                    <li><strong>단점:</strong> 데이터가 낭비되는 빈칸(NULL)이 뻥뻥 뚫리고, 테이블 덩치가 너무 커짐.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. 파티셔닝 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🗄️';">4. 대용량 데이터 성능 2: 파티셔닝 (Partitioning)</h2>
+        <p>테이블 1개에 수천만 건 이상의 데이터가 쌓여 너무 뚱뚱해지면(Block I/O 폭발), <strong>논리적으로는 1개의 테이블처럼 보이지만 물리적으로는 여러 파일로 쪼개서 저장</strong>하는 기술입니다.</p>
+
+        <ul class="partition-list">
+            <li class="partition-item">
+                <div class="partition-title">① Range 파티션<br>(범위)</div>
+                <div class="partition-desc">
+                    가장 많이 쓰이는 방식입니다. 대상 테이블을 <strong>날짜나 숫자 값의 '연속적인 범위'를 기준</strong>으로 나눕니다.<br>
+                    <em>예: 2024년 데이터, 2025년 데이터, 2026년 데이터를 각각 다른 물리적 파일(파티션)에 분리 저장. (관리가 매우 편함)</em>
+                </div>
+            </li>
+            <li class="partition-item">
+                <div class="partition-title">② List 파티션<br>(특정 값)</div>
+                <div class="partition-desc">
+                    지점, 사업소, 지역 코드처럼 <strong>특정 명확한 '값(List)'을 기준</strong>으로 나눕니다.<br>
+                    <em>예: [서울] 파티션, [부산] 파티션, [인천] 파티션으로 분할. (단, 새로운 지역이 생기면 수동으로 추가해야 함)</em>
+                </div>
+            </li>
+            <li class="partition-item" style="border-left-color: var(--warning);">
+                <div class="partition-title" style="color: var(--warning);">③ Hash 파티션<br>(해시 함수)</div>
+                <div class="partition-desc">
+                    관리자가 범위를 지정할 수 없고, DBMS가 <strong>내부 해시 함수 알고리즘을 돌려서 알아서 골고루 데이터를 찢어(분산) 저장</strong>합니다.<br>
+                    <em>예: 특정 데이터가 어느 파티션에 들어갔는지 사람은 알기 힘들지만, 데이터가 한쪽으로 쏠리는 현상을 완벽하게 막아줍니다.</em>
+                </div>
+            </li>
+        </ul>
+        
+        <div class="alert-box" style="border-left-color: var(--secondary); background: #eef2ff;">
+            <h4 style="color: var(--secondary);">💡 파티셔닝의 가장 큰 장점</h4>
+            <p style="margin:0; color:#333;">데이터 액세스 범위가 확 줄어들어(Full Scan 방지) 성능이 극대화되고, 데이터가 망가졌을 때 <strong>특정 파티션(예: 2023년 데이터 파일)만 독립적으로 백업/복구</strong>가 가능해집니다.</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

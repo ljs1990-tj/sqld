@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: 이상현상(Anomaly) 완벽 정복</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0f766e; /* Teal */
+            --accent: #e11d48; /* Rose */
+            --insert: #3b82f6; /* Blue */
+            --update: #f59e0b; /* Amber */
+            --delete: #ef4444; /* Red */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #0f172a, #4c1d95);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #ddd6fe; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.7rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before { margin-right: 12px; font-size: 1.5rem; }
+
+        /* 배드 테이블 박스 */
+        .bad-table-box {
+            background: #fef2f2;
+            border: 2px dashed #fca5a5;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: center;
+        }
+
+        .bad-table-box h3 {
+            color: var(--accent);
+            margin-top: 0;
+            display: inline-block;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 1px solid #fca5a5;
+            font-size: 1.1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        th, td { border: 1px solid var(--border); padding: 12px; text-align: center; }
+        th { background-color: #f1f5f9; color: var(--primary); }
+        .pk { background-color: #fef3c7 !important; font-weight: bold; }
+
+        /* 이상현상 3형제 카드 */
+        .anomaly-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .anomaly-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-left: 6px solid var(--border);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        .card-insert { border-left-color: var(--insert); }
+        .card-update { border-left-color: var(--update); }
+        .card-delete { border-left-color: var(--delete); }
+
+        .anomaly-card h3 {
+            margin-top: 0;
+            font-size: 1.35rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-insert h3 { color: var(--insert); }
+        .card-update h3 { color: #d97706; }
+        .card-delete h3 { color: var(--delete); }
+
+        .scenario-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+            border: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+        }
+
+        .scenario-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: block; }
+        .result-bad { color: var(--accent); font-weight: bold; margin-top: 10px; display: block; }
+
+        /* 1초 암기 박스 */
+        .memorize-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .memorize-box h2 { border: none; justify-content: center; color: #facc15; }
+        .mnemonic { font-size: 2.2rem; font-weight: 900; letter-spacing: 5px; color: #38bdf8; margin: 20px 0; }
+
+        .highlight { font-weight: bold; color: var(--accent); }
+
+        @media (max-width: 768px) {
+            table { font-size: 0.85rem; }
+            th, td { padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🚨 1과목 2장 심화: 이상현상 (Anomaly)</h1>
+        <p>테이블을 제대로 쪼개지(정규화) 않고 하나의 테이블에 너무 많은 정보를 구겨 넣었을 때 발생하는<br>데이터베이스의 치명적인 3가지 버그를 파헤칩니다.</p>
+    </div>
+
+    <!-- 1. 문제의 발단 -->
+    <div class="section-card">
+        <h2 style="before: content: '💣';">1. 문제의 발단: 정규화되지 않은 뚱뚱한 테이블</h2>
+        <p>학생 정보, 학과 정보, 수강 정보가 서로 분리되지 않고 <strong>[수강_통합_테이블]</strong> 하나에 억지로 뭉쳐있는 끔찍한 상황을 가정해 봅시다.</p>
+
+        <div class="bad-table-box">
+            <h3>⛔ [수강_통합_테이블] (PK: 학번 + 수강과목)</h3>
+            <table>
+                <tr>
+                    <th class="pk">학번 (PK)</th>
+                    <th>이름</th>
+                    <th>학과</th>
+                    <th>학과장</th>
+                    <th class="pk">수강과목 (PK)</th>
+                </tr>
+                <tr>
+                    <td>101</td>
+                    <td>옥한빛</td>
+                    <td>컴퓨터공학</td>
+                    <td>김코딩</td>
+                    <td>데이터베이스</td>
+                </tr>
+                <tr>
+                    <td>101</td>
+                    <td>옥한빛</td>
+                    <td>컴퓨터공학</td>
+                    <td>김코딩</td>
+                    <td>자바 프로그래밍</td>
+                </tr>
+                <tr>
+                    <td>102</td>
+                    <td>조민우</td>
+                    <td>경영학</td>
+                    <td>박비즈</td>
+                    <td>회계원리</td>
+                </tr>
+            </table>
+            <p style="text-align: left; margin-top: 15px; font-size: 0.9rem; color: #64748b;">
+                * 주의: 이 테이블에 데이터를 넣으려면 PK인 <strong>'학번'</strong>과 <strong>'수강과목'</strong>이 무조건(NOT NULL) 존재해야 합니다.
+            </p>
+        </div>
+    </div>
+
+    <!-- 2. 이상현상 3형제 -->
+    <div class="section-card">
+        <h2 style="before: content: '👾';">2. 이상현상(Anomaly) 3형제 (기출 0순위)</h2>
+        <p>위의 뚱뚱한 테이블에서 데이터를 삽입, 갱신, 삭제할 때 어떤 끔찍한 일이 벌어지는지 살펴봅시다.</p>
+
+        <div class="anomaly-grid">
+            
+            <!-- 삽입 이상 -->
+            <div class="anomaly-card card-insert">
+                <h3>📥 ① 삽입 이상 (Insertion Anomaly)</h3>
+                <p>데이터를 새로 집어넣고 싶은데, <strong>불필요한 쓰레기 데이터까지 억지로 넣어야만 삽입이 가능한 현상</strong>입니다.</p>
+                <div class="scenario-box">
+                    <span class="scenario-title">🎓 상황: 학교에 새로운 학과인 'AI학과(학과장: 이인공)'가 신설되었습니다.</span>
+                    이 학과 정보를 테이블에 넣으려고 합니다. 그런데 아직 신설 학과라 소속된 '학생(학번)'도 없고 개설된 '수강과목'도 없습니다.<br>
+                    <span class="result-bad">💥 에러 발생: 테이블의 PK가 {학번+수강과목}이므로, 가짜 학생 데이터와 가짜 수강과목을 억지로 만들어내지 않으면 학과 정보를 아예 DB에 저장할 수 없습니다!</span>
+                </div>
+            </div>
+
+            <!-- 갱신 이상 -->
+            <div class="anomaly-card card-update">
+                <h3>✏️ ② 갱신 이상 (Update Anomaly)</h3>
+                <p>중복된 데이터 중 일부만 수정되어, <strong>데이터 간의 일관성(정합성)이 박살 나는 현상</strong>입니다.</p>
+                <div class="scenario-box">
+                    <span class="scenario-title">🎓 상황: 옥한빛 학생이 '컴퓨터공학'에서 '소프트웨어공학'으로 전과를 했습니다.</span>
+                    옥한빛은 현재 5개의 과목을 수강 중이라 위 테이블에 데이터가 5줄 존재합니다. 관리자가 학과를 업데이트할 때 실수로 4줄만 변경하고 1줄을 빼먹었습니다.<br>
+                    <span class="result-bad">💥 일관성 붕괴: DB를 조회하면 옥한빛 학생의 학과가 어떤 줄은 '소프트웨어공학', 어떤 줄은 '컴퓨터공학'으로 섞여서 출력됩니다. 어떤 게 진짜 데이터인지 알 수 없게 됩니다!</span>
+                </div>
+            </div>
+
+            <!-- 삭제 이상 -->
+            <div class="anomaly-card card-delete">
+                <h3>🗑️ ③ 삭제 이상 (Deletion Anomaly)</h3>
+                <p>특정 데이터를 지우려다가, <strong>의도치 않게 보존해야 할 소중한 데이터까지 덩달아 연쇄 삭제되는 현상</strong>입니다.</p>
+                <div class="scenario-box">
+                    <span class="scenario-title">🎓 상황: 조민우 학생이 수강신청을 취소해서 '회계원리' 데이터를 지우려고 합니다.</span>
+                    해당 줄을 삭제(DELETE) 명령어로 날려버렸습니다.<br>
+                    <span class="result-bad">💥 의도치 않은 데이터 소실: 해당 줄이 날아가면서 조민우 학생이 '경영학' 소속이고 학과장이 '박비즈'라는 중요한 학생/학과 정보마저 테이블에서 완전히 영구 삭제되어 버렸습니다!</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- 1초컷 암기 -->
+    <div class="memorize-box">
+        <h2>🎯 실전 시험장 1초 컷 요약</h2>
+        <p style="font-size: 1.1rem; opacity: 0.9;">이상현상은 "왜 정규화를 해야 하는가?"에 대한 답입니다. 단어의 의미만 짝지어 외우세요.</p>
+        
+        <div class="mnemonic">삽 · 갱 · 삭</div>
+        
+        <ul style="text-align: left; max-width: 550px; margin: 0 auto; font-size: 1.1rem; line-height: 1.8; list-style: none; padding: 0;">
+            <li><strong style="color:#38bdf8;">[삽]입 이상:</strong> 쓸데없는 가짜 데이터를 넣어야만 삽입이 가능함.</li>
+            <li><strong style="color:#f59e0b;">[갱]신 이상:</strong> 중복 데이터 중 일부만 수정되어 정보가 불일치함.</li>
+            <li><strong style="color:#ef4444;">[삭]제 이상:</strong> 지우려던 것 말고 애꿎은 귀중한 정보까지 같이 날아감.</li>
+            <li style="margin-top: 15px; text-align: center; color: #a7f3d0; font-weight: bold;">
+                ➔ 해결책: 함수적 종속성을 파악하여 <strong>테이블을 쪼개라(정규화)!</strong>
+            </li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>

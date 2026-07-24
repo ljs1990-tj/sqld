@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 도입: 트랜잭션과 NULL 완벽 이해</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0ea5e9;
+            --accent: #f43f5e;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+            
+            /* ACID Colors */
+            --c-atom: #ef4444;
+            --c-cons: #f59e0b;
+            --c-isol: #3b82f6;
+            --c-dura: #10b981;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 10px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.1rem; color: #cbd5e1; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 35px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* ACID 그리드 */
+        .acid-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .acid-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .acid-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 5px;
+        }
+
+        .c-atom::before { background: var(--c-atom); }
+        .c-cons::before { background: var(--c-cons); }
+        .c-isol::before { background: var(--c-isol); }
+        .c-dura::before { background: var(--c-dura); }
+
+        .acid-letter {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin: 10px 0;
+            line-height: 1;
+        }
+
+        .c-atom .acid-letter { color: var(--c-atom); }
+        .c-cons .acid-letter { color: var(--c-cons); }
+        .c-isol .acid-letter { color: var(--c-isol); }
+        .c-dura .acid-letter { color: var(--c-dura); }
+
+        .acid-title { font-weight: bold; font-size: 1.2rem; margin-bottom: 15px; color: var(--primary); }
+        .acid-desc { font-size: 0.95rem; color: #475569; text-align: left; }
+        .acid-analogy {
+            background: #f8fafc;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-size: 0.9rem;
+            text-align: left;
+            border-left: 3px solid #cbd5e1;
+        }
+
+        /* NULL 박스 스타일 */
+        .null-rule {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border-left: 5px solid var(--secondary);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .null-rule h3 { margin: 0 0 10px 0; color: var(--secondary); }
+        .null-content { flex: 1; }
+        
+        .code-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            margin-top: 10px;
+        }
+
+        .wrong { color: #f87171; text-decoration: line-through; }
+        .right { color: #34d399; font-weight: bold; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 6px;
+            margin: 25px 0;
+        }
+
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; font-size: 1.1rem; }
+        
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fef08a 40%); font-weight: bold; color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .acid-grid { grid-template-columns: 1fr 1fr; }
+            .null-rule { flex-direction: column; align-items: flex-start; }
+        }
+        @media (max-width: 480px) {
+            .acid-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🚀 2과목 도입: 트랜잭션(ACID)과 NULL</h1>
+        <p>설계가 끝났다면 이제 데이터를 다룰 차례입니다.<br>데이터베이스가 데이터를 안전하게 지키는 원리와 가장 헷갈리는 미지의 값 NULL을 파헤칩니다.</p>
+    </div>
+
+    <!-- 1. 트랜잭션 4대 특성 -->
+    <div class="section-card">
+        <h2 style="before: content: '🛡️';">1. 트랜잭션(Transaction)의 4대 특성 (ACID)</h2>
+        <p>트랜잭션이란 <strong>'더 이상 쪼갤 수 없는 논리적 작업의 단위'</strong>입니다. 데이터베이스는 수강신청 과정 중 에러가 났을 때 데이터가 꼬이지 않도록 아래의 <strong>ACID 4가지 원칙</strong>을 무조건 지킵니다.</p>
+
+        <div class="acid-grid">
+            <div class="acid-card c-atom">
+                <div class="acid-letter">A</div>
+                <div class="acid-title">원자성 (Atomicity)</div>
+                <div class="acid-desc">트랜잭션 내의 작업들은 <strong>모두 성공(Commit)하거나, 아예 모두 실패(Rollback)</strong>해야 합니다. (All or Nothing)</div>
+                <div class="acid-analogy">🎓 잔여 좌석 1개 감소 + 내 수강목록 추가는 무조건 동시에 이뤄져야 함. 하나만 성공하면 대형 사고!</div>
+            </div>
+
+            <div class="acid-card c-cons">
+                <div class="acid-letter">C</div>
+                <div class="acid-title">일관성 (Consistency)</div>
+                <div class="acid-desc">트랜잭션이 끝나도 데이터베이스의 <strong>규칙(무결성 제약조건)은 영원히 일관되게 유지</strong>되어야 합니다.</div>
+                <div class="acid-analogy">🎓 수강신청 전이나 후나 '최대 21학점 제한'이라는 학교 룰은 절대 깨지면 안 됨.</div>
+            </div>
+
+            <div class="acid-card c-isol">
+                <div class="acid-letter">I</div>
+                <div class="acid-title">고립성 (Isolation)</div>
+                <div class="acid-desc">하나의 트랜잭션이 실행 중일 때, <strong>다른 트랜잭션이 중간에 끼어들어 데이터를 건드릴 수 없습니다.</strong></div>
+                <div class="acid-analogy">🎓 남은 1자리를 두 명이 동시에 클릭했을 때, 서로 격리(Lock)시켜서 한 명만 등록되게 막아줌.</div>
+            </div>
+
+            <div class="acid-card c-dura">
+                <div class="acid-letter">D</div>
+                <div class="acid-title">영속성 (Durability)</div>
+                <div class="acid-desc">트랜잭션이 성공적으로 완료(Commit)되었다면, <strong>그 결과는 서버가 고장 나도 영구적으로 보존</strong>되어야 합니다.</div>
+                <div class="acid-analogy">🎓 "신청 완료" 팝업을 본 직후 서버실에 불이 나도, 내 수강내역은 살아있어야 함.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. NULL의 특성 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🕳️';">2. 기출 0순위: NULL의 특성과 연산 (블랙홀 법칙)</h2>
+        <p>NULL은 0(숫자)도 아니고, 공백(빈칸, '')도 아닙니다. <strong>'아직 정해지지 않은 미지의 값(Unknown)'</strong> 또는 '부재 값'입니다.</p>
+
+        <div class="null-rule">
+            <div class="null-content">
+                <h3>① NULL의 사칙 연산 = 블랙홀</h3>
+                <p>어떤 숫자든 NULL과 사칙연산(+, -, *, /)을 하면 <strong>결과는 무조건 NULL</strong>로 오염됩니다.</p>
+                <div class="code-box">
+                    성적: 30(중간) + NULL(기말결시) = <span class="highlight" style="color: #1e293b;">NULL</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="null-rule">
+            <div class="null-content">
+                <h3>② NULL의 비교 연산 = IS NULL</h3>
+                <p>NULL은 미지의 값이므로 <code>=</code> 기호로 비교할 수 없습니다. 별도의 전용 연산자를 써야 합니다.</p>
+                <div class="code-box">
+                    <span class="wrong">WHERE 성적 = NULL;</span> (동작 안 함)<br>
+                    <span class="right">WHERE 성적 IS NULL;</span> (정답)<br>
+                    <span class="right">WHERE 성적 IS NOT NULL;</span> (NULL이 아닌 것 찾기)
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-box">
+            <h4>🚨 특급 기출 함정: 집계함수와 NULL의 관계</h4>
+            <p><strong>SUM, AVG, MAX, MIN</strong> 같은 그룹 집계함수들은 <strong>NULL인 행(Row)을 아예 투명인간 취급(무시)하고 계산</strong>합니다.</p>
+            <ul style="margin-bottom: 0;">
+                <li>학생 3명의 점수가 [100점, 50점, NULL(결시)] 일 때:</li>
+                <li><strong>SUM(점수)</strong> ➔ 150 (NULL은 무시됨)</li>
+                <li><strong>AVG(점수)</strong> ➔ 150 / 2명 = <strong>75점</strong> <br><em>(※ 3명으로 나눠서 50점이 되는 것이 아님! NULL인 학생은 분모(N)에서도 쿨하게 제외됨!)</em></li>
+            </ul>
+        </div>
+        
+        <div class="alert-box" style="border-left-color: #3b82f6; background: #eff6ff;">
+            <h4 style="color: #2563eb;">💡 유일한 예외: COUNT(*)</h4>
+            <p style="margin-bottom: 0;"><code>COUNT(컬럼명)</code>은 NULL을 무시하지만, <strong><code>COUNT(*)</code>는 테이블의 전체 '행(Row)의 개수'를 세기 때문에 NULL이 포함된 행도 숫자(1)로 카운트</strong>합니다!</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

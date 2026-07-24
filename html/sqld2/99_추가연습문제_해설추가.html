@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 하프 모의고사 (엔터티/속성/관계 심화)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --important: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --correct-bg: #e8f8f5;
+            --correct-border: #2ecc71;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            font-size: 2.2rem;
+        }
+
+        .header p { color: #7f8c8d; font-size: 1.1rem; }
+
+        /* 문제 카드 스타일 */
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #e0e6ed;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .question-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.06);
+            border-color: #bdc3c7;
+        }
+
+        /* 중요 문제 강조 */
+        .is-important {
+            border: 2px solid var(--important);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.15);
+        }
+
+        .badge-important {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background-color: var(--important);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+        }
+
+        .q-number {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-right: 10px;
+        }
+
+        .q-text {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .options {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+
+        .options li {
+            background-color: #f8f9fa;
+            border: 1px solid #ecf0f1;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .options li:hover { background-color: #eaf2f8; }
+
+        /* 정답 확인 토글 영역 */
+        details {
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #d5dbdb;
+            margin-top: 15px;
+        }
+
+        summary {
+            padding: 15px;
+            font-weight: bold;
+            color: var(--primary);
+            cursor: pointer;
+            outline: none;
+            list-style: none; 
+        }
+        
+        summary::-webkit-details-marker { display: none; }
+        summary::before {
+            content: "👉";
+            margin-right: 10px;
+        }
+        details[open] summary::before { content: "👇"; }
+
+        .answer-box {
+            padding: 20px;
+            background-color: var(--correct-bg);
+            border-top: 1px solid var(--correct-border);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .answer-box .correct-ans {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .answer-box .explanation { color: #2c3e50; font-size: 0.95rem; }
+        .analogy { background: rgba(255,255,255,0.7); padding: 10px; border-radius: 5px; margin-top: 10px; border-left: 3px solid #3498db; }
+        
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎯 SQLD 1과목 하프 모의고사</h1>
+        <p>데이터 모델링 기본, 엔터티, 속성, 관계 심화 20제입니다.<br><strong>상세한 해설</strong>이 포함되어 있으니 문제를 푼 후 열어보세요!</p>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q1.</span> 데이터 모델링의 특징 중 '단순화(Simplification)'에 대한 설명으로 가장 적절한 것은?</div>
+        <ul class="options">
+            <li>① 현실 세계의 복잡한 요소를 일정한 형식에 맞추어 누구나 이해하기 쉽게 표현하는 것이다.</li>
+            <li>② 데이터의 정확성을 높이기 위해 최대한 복잡하고 상세하게 도식화하는 것이다.</li>
+            <li>③ 특정 DBMS에 맞춰 성능을 최적화하기 위해 테이블을 병합하거나 분할하는 것이다.</li>
+            <li>④ 현실 세계를 애매모호함 없이 정확하게 기술하여 의미가 명확히 전달되도록 하는 것이다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ①</div>
+                <div class="explanation">
+                    데이터 모델링의 3대 특징은 <b>추상화, 단순화, 명확성</b>입니다.<br>
+                    - <b>단순화</b>: 제한된 표기법(약속된 규약이나 선 등)을 활용해 누구나 쉽게 이해할 수 있도록 표현하는 것(①번).<br>
+                    - <b>명확성</b>: 대상에 대한 애매모호함을 제거하고 정확하게 기술하는 것(④번).<br>
+                    - <b>추상화</b>: 현실 세계를 일정한 형식(모형)에 맞추어 표현하는 것.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q2.</span> 다음 중 데이터 모델링의 세 가지 관점에 대한 설명으로 올바르게 짝지어진 것은?</div>
+        <ul class="options">
+            <li>① 데이터 관점 - 업무가 어떤 프로세스로 진행되는지 그 순서를 모델링한다.</li>
+            <li>② 프로세스 관점 - 업무가 처리됨에 따라 데이터가 어떻게 영향을 받는지(CRUD) 모델링한다.</li>
+            <li>③ 데이터 관점 - 업무가 어떤 데이터와 관련이 있는지, 혹은 데이터 간의 관계가 무엇인지 모델링한다.</li>
+            <li>④ 상관 관점 - 물리적 저장소에 데이터가 어떻게 배치될지 디스크 구조를 모델링한다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ③</div>
+                <div class="explanation">
+                    - <b>데이터(What) 관점</b>: 업무와 데이터의 관계, 데이터 간의 관계를 모델링 (③ 정답).<br>
+                    - <b>프로세스(How) 관점</b>: 업무가 실제로 하는 일, 처리 방법을 모델링.<br>
+                    - <b>상관(Interaction) 관점</b>: 프로세스에 따라 데이터가 어떻게 변하는지(CRUD 매트릭스) 모델링.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q3.</span> 데이터베이스 스키마 3단계 구조(3-Level Architecture) 중, 기관이나 기업 전체의 데이터베이스 논리적 구조를 하나로 통합하여 정의한 스키마는 무엇인가?</div>
+        <ul class="options">
+            <li>① 외부 스키마 (External Schema)</li>
+            <li>② 개념 스키마 (Conceptual Schema)</li>
+            <li>③ 내부 스키마 (Internal Schema)</li>
+            <li>④ 물리 스키마 (Physical Schema)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    <b>개념 스키마</b>는 조직 전체의 통합된 데이터 구조(DBA 관점)입니다. 단 1개만 존재합니다.<br>
+                    - 외부 스키마: 사용자/응용프로그램 관점 (여러 개 존재 가능)<br>
+                    - 내부 스키마: 물리적 저장 장치 관점 (인덱스, 파티션 등)
+                    <div class="analogy">💡 비유: <b>외부 스키마</b>=내비게이션 화면 / <b>개념 스키마</b>=전국 도로 지도 전체 / <b>내부 스키마</b>=실제 아스팔트 포장 방식</div>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q4.</span> 다음 중 '엔터티(Entity)'가 가져야 할 특징으로 가장 부적절한 것은?</div>
+        <ul class="options">
+            <li>① 반드시 해당 업무에서 필요하고 관리하고자 하는 정보이어야 한다.</li>
+            <li>② 유일한 식별자(Unique Identifier)에 의해 식별이 가능해야 한다.</li>
+            <li>③ 엔터티는 하나 이상의 인스턴스(Instance)를 포함해야 하므로 단일 인스턴스만 갖는 것은 불가능하다.</li>
+            <li>④ 다른 엔터티와 최소 1개 이상의 관계(Relationship)를 가져야 한다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ③</div>
+                <div class="explanation">
+                    엔터티는 <b>'두 개 이상'</b>의 인스턴스 집합이어야 합니다. 인스턴스가 1개뿐인 것(예: 우리 회사의 '대표이사'라는 단 한 명의 정보)은 엔터티로 설계하지 않는 것이 원칙입니다.<br>
+                    참고로 엔터티의 핵심 특징은 '업무에 필요함', '유일한 식별자', '2개 이상의 인스턴스', '2개 이상의 속성', '최소 1개 이상의 관계' 입니다. (단, 통계성/코드성 엔터티는 예외적으로 관계가 없을 수 있음)
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q5.</span> 엔터티를 발생 시점에 따라 분류할 때, 업무에 원래부터 존재하며 다른 엔터티에 의해 파생되지 않고 독립적으로 생성되는 엔터티는?</div>
+        <ul class="options">
+            <li>① 기본/키 엔터티 (Basic Entity)</li>
+            <li>② 중심 엔터티 (Main Entity)</li>
+            <li>③ 행위 엔터티 (Action Entity)</li>
+            <li>④ 유형 엔터티 (Tangible Entity)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ①</div>
+                <div class="explanation">
+                    발생 시점에 따른 분류는 다음과 같습니다.<br>
+                    - <b>기본(키) 엔터티</b>: 부모 역할. 그 업무에 원래 존재하는 정보. (예: 사원, 부서, 고객, 상품)<br>
+                    - <b>중심 엔터티</b>: 기본 엔터티로부터 발생하며, 행위 엔터티를 생성. (예: 계약, 사고, 예금원장)<br>
+                    - <b>행위 엔터티</b>: 두 개 이상의 부모 엔터티로부터 발생, 데이터량이 많음. (예: 주문내역, 상세이력)
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q6.</span> 속성(Attribute)의 특성에 따른 분류 중, 업무상 원래부터 존재하는 속성은 아니지만 시스템 구축이나 설계 과정에서 규칙화, 식별을 위해 새롭게 만들어낸 속성은?</div>
+        <ul class="options">
+            <li>① 기본 속성 (Basic Attribute)</li>
+            <li>② 설계 속성 (Designed Attribute)</li>
+            <li>③ 파생 속성 (Derived Attribute)</li>
+            <li>④ 복합 속성 (Composite Attribute)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    - <b>기본 속성</b>: 이름, 주소 등 업무에서 원래 추출된 속성.<br>
+                    - <b>설계 속성</b>: 업무를 시스템화하기 위해 설계자가 임의로 부여한 속성. (예: 회원번호, 상품코드, 일련번호)<br>
+                    - <b>파생 속성</b>: 다른 속성으로부터 계산/유도된 속성. 가급적 적게 정의하는 것이 좋음. (예: 이자, 총금액, 합계)
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q7.</span> 다음 중 '파생 속성(Derived Attribute)'의 예시로 가장 적절한 것은?</div>
+        <ul class="options">
+            <li>① 회원의 집 주소</li>
+            <li>② 은행 계좌의 계좌번호</li>
+            <li>③ 직원의 입사일자</li>
+            <li>④ 주문 테이블의 주문총금액(단가 × 수량)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ④</div>
+                <div class="explanation">
+                    '주문총금액'은 '단가'와 '수량'이라는 다른 속성에 의해 계산되어(영향을 받아) 파생되는 속성이므로 <b>파생 속성</b>입니다. (주소, 입사일자 = 기본속성 / 계좌번호 = 설계속성)
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q8.</span> 엔터티 내에서 각각의 속성이 가질 수 있는 값의 범위(Data Type, 길이, 제약조건 등)를 의미하는 데이터 모델링 용어는?</div>
+        <ul class="options">
+            <li>① 인스턴스 (Instance)</li>
+            <li>② 도메인 (Domain)</li>
+            <li>③ 식별자 (Identifier)</li>
+            <li>④ 스키마 (Schema)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    <b>도메인(Domain)</b>은 속성이 가질 수 있는 값의 유효 범위입니다. <br>
+                    예를 들어, '성별' 속성의 도메인은 '남' 또는 '여' 2자리의 문자열 범위를 갖도록 제약(Check)할 수 있습니다.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q9.</span> 속성(Attribute)과 인스턴스(Instance)의 관계에 대한 설명으로 올바르지 않은 것은?</div>
+        <ul class="options">
+            <li>① 하나의 엔터티에는 두 개 이상의 인스턴스가 존재해야 한다.</li>
+            <li>② 하나의 엔터티에는 두 개 이상의 속성을 가져야 한다.</li>
+            <li>③ 하나의 인스턴스에서 하나의 속성은 여러 개의 값(Multi-value)을 가질 수 있다.</li>
+            <li>④ 속성은 업무에서 필요로 하고 관리하고자 하는 최소의 데이터 단위이다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ③</div>
+                <div class="explanation">
+                    제1정규화의 원칙에 따라, <b>하나의 속성은 반드시 단일 값(Single Value)</b>만 가져야 합니다.<br>
+                    예를 들어 한 명의 사원(인스턴스)의 '자격증' 속성에 '정보처리기사, SQLD'처럼 두 개의 값이 들어가면 안 되며, 이는 별도의 엔터티(1:M 관계)로 분리해야 합니다.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q10.</span> 관계(Relationship)를 구성하는 3대 기본 요소로 바르게 짝지어진 것은?</div>
+        <ul class="options">
+            <li>① 관계명, 관계차수, 관계선택사양</li>
+            <li>② 관계명, 관계식별자, 관계차수</li>
+            <li>③ 관계차수, 관계선택사양, 관계종속성</li>
+            <li>④ 엔터티, 속성, 관계선택사양</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ①</div>
+                <div class="explanation">
+                    관계의 3요소는 다음과 같습니다.<br>
+                    1) <b>관계명 (Name)</b>: 관계의 이름 (예: '소속된다', '포함한다')<br>
+                    2) <b>관계차수 (Degree/Cardinality)</b>: 1:1, 1:M, M:N 여부<br>
+                    3) <b>관계선택사양 (Optionality)</b>: 필수(Mandatory)인지 선택(Optional)인지 여부
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q11.</span> ERD(IE 표기법)를 그릴 때, '부서'와 '사원' 간의 관계에서 "한 부서에는 사원이 없을 수도 있다"는 조건을 표현하기 위해 부서 측(선 시작점)에서 사원 측(선 끝점)으로 그리는 기호로 올바른 것은?</div>
+        <ul class="options">
+            <li>① 수직선 ( | )</li>
+            <li>② 점선 ( - - - )</li>
+            <li>③ 동그라미 ( O )</li>
+            <li>④ 화살표 ( → )</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ③</div>
+                <div class="explanation">
+                    '없을 수도 있다(0개일 수도 있다)'는 것은 <b>선택적(Optional) 참여</b>를 의미하며, 이는 동그라미(O)로 표시합니다. <br>
+                    '반드시 있어야 한다'는 필수 참여는 수직선(|)으로 표시합니다.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q12.</span> 엔터티 간의 관계를 '존재적 관계'와 '행위적 관계'로 나눌 수 있다. 다음 중 <b>행위적 관계(Action Relationship)</b>의 예시로 가장 적절한 것은?</div>
+        <ul class="options">
+            <li>① 부서 - 사원 (소속)</li>
+            <li>② 고객 - 주문 (주문)</li>
+            <li>③ 학교 - 학생 (재학)</li>
+            <li>④ 국가 - 도시 (포함)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    - <b>존재적 관계</b>: 어떤 엔터티가 존재함으로 인해 형성되는 관계. 상태나 소속을 의미합니다. (부서-사원, 학교-학생)<br>
+                    - <b>행위적 관계</b>: 어떤 행위(이벤트)가 발생함으로써 형성되는 관계. 동사적인 의미가 강합니다. (고객-주문, 학생-출석)<br>
+                    <i>※ 주의: ERD(IE, Barker)에서는 두 관계를 표기법상 분리하여 그리지 않습니다.</i>
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q13.</span> 부모 엔터티로부터 상속받은 외래키(Foreign Key)를 자식 엔터티의 일반 속성으로만 사용하고, 자식 엔터티의 식별자(PK)로는 사용하지 않는 관계를 뜻하는 용어는?</div>
+        <ul class="options">
+            <li>① 식별자 관계 (Identifying Relationship)</li>
+            <li>② 비식별자 관계 (Non-Identifying Relationship)</li>
+            <li>③ 순환 관계 (Recursive Relationship)</li>
+            <li>④ 다대다 관계 (M:N Relationship)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    - <b>식별자 관계</b>: 부모의 PK를 자식의 PK(기본키)로 물려받는 강한 연결. (IE표기법: 실선)<br>
+                    - <b>비식별자 관계</b>: 부모의 PK를 자식의 일반 속성(일반 FK)으로만 물려받는 약한 연결. 부모가 없어도 자식이 독립적인 PK를 가짐. (IE표기법: 점선)
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q14.</span> 데이터베이스 테이블 간의 M:N (다대다) 관계를 RDBMS (관계형 데이터베이스) 물리적 모델링에서 처리하는 방법으로 가장 적절한 것은?</div>
+        <ul class="options">
+            <li>① 다대다 관계를 그대로 테이블로 생성하여 JOIN 한다.</li>
+            <li>② 부모 테이블 하나에 자식 데이터를 배열 형태로 모두 저장한다.</li>
+            <li>③ 양쪽 엔터티의 교차 엔터티(Associative Entity)를 도출하여 두 개의 1:M 관계로 해소한다.</li>
+            <li>④ 성능을 위해 두 테이블을 하나의 거대한 테이블로 병합(반정규화)한다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ③</div>
+                <div class="explanation">
+                    논리적 모델링에서는 M:N 관계를 표현할 수 있지만, 실제 관계형 DB(RDBMS)에서는 다대다 조인을 직접 구현할 수 없습니다. 따라서 중간에 <b>'교차 엔터티(매핑 테이블)'</b>를 두어 양쪽과 각각 1:M 관계를 맺도록 풀어주어야(해소해야) 합니다.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q15.</span> ERD를 읽을 때 <code>[고객] ||───────O< [주문]</code> 과 같이 그려져 있다. 다음 중 이 모델에 대한 해석으로 <b>틀린</b> 것은?</div>
+        <ul class="options">
+            <li>① 한 명의 고객은 여러 번 주문할 수 있다.</li>
+            <li>② 주문을 한 번도 하지 않은 고객(가입만 한 고객)도 존재할 수 있다.</li>
+            <li>③ 하나의 주문은 반드시 한 명의 고객과 연결되어야 한다.</li>
+            <li>④ 하나의 주문이 여러 명의 고객에 의해 공동으로 이루어질 수 있다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ④</div>
+                <div class="explanation">
+                    - <code><</code> (까마귀 발): 고객 1명 당 주문 여러 개 가능 (①번 맞음)<br>
+                    - <code>O</code> (동그라미): 주문이 0개일 수 있음 (②번 맞음)<br>
+                    - <code>||</code> (필수 1): 주문 입장에서 고객은 반드시 1명만 있어야 함 (③번 맞음, ④번 틀림. 공동주문 불가)
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q16.</span> 논리적 데이터 모델의 객체들이 RDB 물리 모델로 변환될 때의 매핑 관계로 올바르지 않은 것은?</div>
+        <ul class="options">
+            <li>① 엔터티 (Entity) ➔ 테이블 (Table)</li>
+            <li>② 속성 (Attribute) ➔ 칼럼 (Column)</li>
+            <li>③ 식별자 (Identifier) ➔ 기본키 (Primary Key)</li>
+            <li>④ 인스턴스 (Instance) ➔ 데이터베이스 (Database)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ④</div>
+                <div class="explanation">
+                    인스턴스(Instance)는 테이블 내의 실제 데이터 한 줄, 즉 <b>행(Row / Tuple)</b>으로 변환됩니다. 데이터베이스 전체가 아닙니다.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q17.</span> 속성(Attribute) 명명 규칙으로 가장 적절하지 않은 것은?</div>
+        <ul class="options">
+            <li>① 해당 업무에서 실제로 사용하는 현업 용어를 사용한다.</li>
+            <li>② 의미 전달을 명확하게 하기 위해 가급적 서술형으로 길게 작성한다.</li>
+            <li>③ 전체 데이터 모델에서 유일성을 확보하는 것이 바람직하다.</li>
+            <li>④ 의미를 쉽게 파악할 수 없는 지나친 약어 사용은 피한다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    속성명은 서술식으로 길게 쓰지 않고 명사형으로 간결하게 작성해야 합니다. (예: '직원이 태어난 날짜' -> '생년월일')
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q18.</span> 동일한 데이터가 여러 테이블에 흩어져 있어, 한 곳에서만 데이터 갱신이 일어나고 다른 곳에서는 갱신되지 않아 데이터가 서로 일치하지 않게 되는 현상을 의미하는 데이터 모델링의 '3대 죄악' 요소는 무엇인가?</div>
+        <ul class="options">
+            <li>① 중복 (Duplication)</li>
+            <li>② 비유연성 (Inflexibility)</li>
+            <li>③ 비일관성 (Inconsistency)</li>
+            <li>④ 독립성 (Independence)</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ③</div>
+                <div class="explanation">
+                    데이터의 모순이 발생하는 것을 <b>비일관성(Inconsistency)</b>이라고 합니다. <br>
+                    (중복은 같은 데이터가 불필요하게 여러 곳에 쌓이는 현상 그 자체이며, 비일관성은 그 중복으로 인해 업데이트 시 서로 데이터가 어긋나버리는 치명적인 결과입니다.)
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card is-important">
+        <div class="badge-important">⭐️ 필수 기출</div>
+        <div class="q-text"><span class="q-number">Q19.</span> 모델링 과정에서 도출된 [계약], [사고], [청구] 엔터티처럼 기본 엔터티(고객 등)로부터 파생되어 비즈니스의 핵심 데이터를 담고 있는 엔터티를 무엇이라 하는가?</div>
+        <ul class="options">
+            <li>① 기본 엔터티</li>
+            <li>② 중심 엔터티</li>
+            <li>③ 행위 엔터티</li>
+            <li>④ 개념 엔터티</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    <b>중심 엔터티(Main Entity)</b>는 기본 엔터티(고객)로부터 발생하며, 업무에 있어서 핵심적인 역할을 하는 엔터티입니다. 데이터량이 많고, 다른 행위 엔터티(상세 내역 등)를 파생시키는 중심 역할을 합니다.
+                </div>
+            </div>
+        </details>
+    </div>
+
+    <div class="question-card">
+        <div class="q-text"><span class="q-number">Q20.</span> 다음 중 '논리적 데이터 독립성(Logical Data Independence)'이 제공하는 가장 큰 이점은 무엇인가?</div>
+        <ul class="options">
+            <li>① 물리적 하드웨어(디스크)를 교체해도 스키마에 영향을 주지 않는다.</li>
+            <li>② 논리적 구조(개념 스키마)가 변경되더라도 기존 사용자 응용프로그램(외부 스키마)에 영향을 주지 않는다.</li>
+            <li>③ 데이터베이스 시스템이 장애 시 자동으로 백업을 복구한다.</li>
+            <li>④ RDBMS 벤더(오라클, MySQL 등)를 자유롭게 교체할 수 있다.</li>
+        </ul>
+        <details>
+            <summary>정답 및 해설 확인</summary>
+            <div class="answer-box">
+                <div class="correct-ans">정답: ②</div>
+                <div class="explanation">
+                    데이터 독립성에는 두 가지가 있습니다.<br>
+                    - <b>논리적 독립성</b>: 개념 스키마(DB 전체 뼈대)가 변경되어도 외부 스키마(응용프로그램, 뷰)는 수정할 필요가 없음(②번).<br>
+                    - <b>물리적 독립성</b>: 내부 스키마(물리적 디스크 위치)가 변경되어도 개념 스키마가 영향을 받지 않음(①번).
+                </div>
+            </div>
+        </details>
+    </div>
+
+</div>
+
+</body>
+</html>
