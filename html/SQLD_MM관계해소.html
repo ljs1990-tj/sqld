@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 심화: M:M 관계 해소 완벽 이해</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0284c7; /* Sky blue */
+            --accent: #ef4444; /* Red */
+            --success: #10b981; /* Emerald */
+            --bridge: #8b5cf6; /* Purple for Intersection */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #0f172a, #334155);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #cbd5e1; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.7rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before { margin-right: 12px; font-size: 1.5rem; }
+
+        /* 다이어그램 (ERD 시각화) */
+        .erd-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            background: #f1f5f9;
+            padding: 30px;
+            border-radius: 12px;
+            gap: 10px;
+        }
+
+        .entity-box {
+            background: white;
+            border: 2px solid var(--primary);
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .entity-bridge {
+            border-color: var(--bridge);
+            background: #f3e8ff;
+            color: #6d28d9;
+        }
+
+        .line {
+            display: flex;
+            align-items: center;
+            font-weight: 900;
+            color: #64748b;
+            font-size: 1.5rem;
+            letter-spacing: -2px;
+        }
+
+        /* 테이블 디자인 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        th, td { border: 1px solid var(--border); padding: 12px; text-align: center; }
+        th { background-color: #f8fafc; color: var(--primary); }
+        .pk { background-color: #fef3c7 !important; font-weight: bold; }
+        .fk { background-color: #e0f2fe !important; font-weight: bold; color: #0284c7; }
+        .bad-cell { background-color: #fee2e2; color: #b91c1c; font-weight: bold; text-decoration: underline; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .success-box h4 { margin: 0 0 10px 0; color: var(--success); display: flex; align-items: center; }
+
+        /* 1초 암기 박스 */
+        .memorize-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .memorize-box h2 { border: none; justify-content: center; color: #facc15; }
+        
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fef08a 40%); font-weight: bold; color: var(--primary); }
+
+        @media (max-width: 768px) {
+            .erd-container { flex-direction: column; }
+            .line { transform: rotate(90deg); margin: 15px 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>💡 1과목 심화: M:M 관계 해소 완벽 이해</h1>
+        <p>현실 세계의 다대다(M:M) 관계가 왜 데이터베이스에서는 구현 불가능한지,<br>그리고 '교차 엔터티'가 이를 어떻게 구원하는지 테이블 구조로 확인합니다.</p>
+    </div>
+
+    <!-- 1. M:M 관계의 문제점 -->
+    <div class="section-card">
+        <h2 style="before: content: '💣';">1. 문제 발생: M:M을 그대로 물리 DB로 만들면?</h2>
+        <p>현실 세계(개념적 모델링)에서는 <strong>"학생 여러 명이 과목 여러 개를 듣는다"</strong>가 너무 자연스럽습니다.</p>
+        
+        <div class="erd-container">
+            <div class="entity-box">[학생]</div>
+            <div class="line">───∈ ∋───</div>
+            <div class="entity-box">[과목]</div>
+        </div>
+
+        <p>하지만 이걸 오라클이나 MySQL 같은 실제 데이터베이스(물리 DB) 테이블로 그대로 만들려고 하면 <strong>치명적인 버그(제1정규형 위배)</strong>가 발생합니다.</p>
+
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 300px;">
+                <h4 style="color: var(--accent); text-align: center; margin-bottom: 5px;">❌ 실패한 [학생] 테이블 구조</h4>
+                <table>
+                    <tr><th class="pk">학번(PK)</th><th>이름</th><th>수강과목코드(FK)</th></tr>
+                    <tr><td>101</td><td>옥한빛</td><td class="bad-cell">DB01, JA02, CS03</td></tr>
+                    <tr><td>102</td><td>이태연</td><td class="bad-cell">JA02, CS03</td></tr>
+                </table>
+                <p style="font-size: 0.9rem; color: #64748b; text-align: center;">➔ 속성(칸) 하나에는 무조건 1개의 값만 들어가야 하는데(원자성), 쉼표(,)로 여러 개를 우겨 넣게 되어 DB가 망가집니다.</p>
+            </div>
+            <div style="flex: 1; min-width: 300px;">
+                <h4 style="color: var(--accent); text-align: center; margin-bottom: 5px;">❌ 실패한 [과목] 테이블 구조</h4>
+                <table>
+                    <tr><th class="pk">과목코드(PK)</th><th>과목명</th><th>수강학생학번(FK)</th></tr>
+                    <tr><td>JA02</td><td>자바</td><td class="bad-cell">101, 102, 105...</td></tr>
+                </table>
+                <p style="font-size: 0.9rem; color: #64748b; text-align: center;">➔ 반대쪽도 마찬가지입니다. 하나의 과목에 수십 명의 학생 학번을 넣을 공간이 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 교차 엔터티의 등장 -->
+    <div class="section-card">
+        <h2 style="before: content: '🌉';">2. 해결책: 다리(Bridge)를 놓아라! (교차 엔터티)</h2>
+        <p>직접 연결을 포기하고, 가운데에 <strong>새로운 테이블(교차 엔터티/행위 엔터티)</strong>을 하나 파서 양쪽을 연결하는 징검다리 역할을 맡깁니다. 이 다리의 이름이 바로 <strong>[수강내역]</strong>입니다.</p>
+
+        <div class="erd-container" style="background: #f3e8ff;">
+            <div class="entity-box">[학생]</div>
+            <div class="line" style="color: var(--bridge);">───|초</div>
+            <div class="entity-box entity-bridge">⭐ [수강내역] ⭐</div>
+            <div class="line" style="color: var(--bridge);">O|───</div>
+            <div class="entity-box">[과목]</div>
+        </div>
+        <p style="text-align: center; font-weight: bold; color: var(--bridge);">M:M (다대다) 관계 ➔ 1:M (일대다) 관계 2개로 쪼개짐!</p>
+
+        <div class="success-box">
+            <h4>✅ 성공적인 물리적 DB 테이블 구조</h4>
+            <p style="margin-bottom: 10px;">이제 각 테이블은 원자성을 지키면서도 완벽하게 수강 정보를 관리할 수 있게 되었습니다.</p>
+            
+            <h5 style="margin: 0; color: #333;">1. 순수한 [학생] 테이블 (1)</h5>
+            <table style="margin-top: 5px; margin-bottom: 15px;">
+                <tr><th class="pk">학번(PK)</th><th>이름</th></tr>
+                <tr><td>101</td><td>옥한빛</td></tr>
+                <tr><td>102</td><td>이태연</td></tr>
+            </table>
+
+            <h5 style="margin: 0; color: #6d28d9;">2. 교차 엔터티 [수강내역] 테이블 (M)</h5>
+            <table style="margin-top: 5px; margin-bottom: 15px; border: 2px solid var(--bridge);">
+                <tr><th class="fk">학번 (FK)</th><th class="fk">과목코드 (FK)</th><th>신청일자 (추가속성)</th></tr>
+                <tr><td>101</td><td>DB01</td><td>2026-03-02</td></tr>
+                <tr><td>101</td><td>JA02</td><td>2026-03-02</td></tr>
+                <tr><td>102</td><td>JA02</td><td>2026-03-03</td></tr>
+            </table>
+            <p style="font-size: 0.9rem; color: #64748b; margin-top: -5px;">➔ 학생 테이블의 학번과 과목 테이블의 과목코드를 둘 다 빌려와서(FK) 연결 고리로 씁니다. ('학번+과목코드'를 묶어서 이 테이블의 PK로 쓰기도 합니다 = 식별자 관계)</p>
+
+            <h5 style="margin: 0; color: #333;">3. 순수한 [과목] 테이블 (1)</h5>
+            <table style="margin-top: 5px;">
+                <tr><th class="pk">과목코드(PK)</th><th>과목명</th></tr>
+                <tr><td>DB01</td><td>데이터베이스</td></tr>
+                <tr><td>JA02</td><td>자바 프로그래밍</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 1초컷 암기 -->
+    <div class="memorize-box">
+        <h2>🎯 실전 기출 지문 암기</h2>
+        <ul style="text-align: left; max-width: 650px; margin: 20px auto 0 auto; line-height: 1.8; font-size: 1.15rem; color: #f8fafc; list-style: none; padding: 0;">
+            <li>✅ "M:M 관계는 데이터 모델링의 <span style="color:#facc15;">논리적/물리적 단계에서 구현할 수 없으므로</span> 해소해야 한다." (O)</li>
+            <li>✅ "M:M 관계를 해소하기 위해 <span style="color:#38bdf8;">새로운 교차 엔터티(관계 엔터티)</span>를 추가한다." (O)</li>
+            <li>✅ "M:M 관계는 교차 엔터티를 통해 <span style="color:#38bdf8;">두 개의 1:M 관계</span>로 분리된다." (O)</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>
