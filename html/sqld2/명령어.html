@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목: SQL 명령어 4대장과 SELECT 기초</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0284c7; /* Light Blue */
+            --accent: #e11d48; /* Rose */
+            --success: #16a34a; /* Green */
+            --warning: #d97706; /* Amber */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.4rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #cbd5e1; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.7rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before { margin-right: 12px; font-size: 1.5rem; }
+
+        /* SQL 4대장 그리드 */
+        .sql-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .sql-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: transform 0.2s;
+        }
+
+        .sql-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.05); }
+
+        .sql-card::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 6px;
+        }
+
+        .c-ddl::before { background: var(--secondary); }
+        .c-dml::before { background: var(--success); }
+        .c-dcl::before { background: var(--warning); }
+        .c-tcl::before { background: var(--accent); }
+
+        .sql-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 5px; color: var(--primary); }
+        .sql-full { font-size: 0.85rem; color: #64748b; margin-bottom: 15px; }
+        
+        .sql-cmds {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #0f172a;
+            margin-bottom: 15px;
+        }
+
+        .sql-desc { font-size: 0.95rem; color: #475569; text-align: left; }
+
+        /* 비교 테이블 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 20px;
+        }
+
+        th, td { border: 1px solid var(--border); padding: 15px; text-align: center; }
+        th { background-color: #f8fafc; color: var(--primary); font-size: 1.05rem; }
+        
+        .tb-delete { color: var(--success); font-weight: bold; }
+        .tb-truncate { color: var(--warning); font-weight: bold; }
+        .tb-drop { color: var(--accent); font-weight: bold; }
+
+        /* SELECT 순서 박스 */
+        .order-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .order-box {
+            flex: 1;
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .order-box h3 {
+            text-align: center;
+            margin-top: 0;
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .bg-write { background-color: #475569; }
+        .bg-run { background-color: #0284c7; }
+
+        .order-list { list-style: none; padding: 0; margin: 0; }
+        .order-list li {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f8fafc;
+            border-radius: 6px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .order-list li span {
+            background: var(--primary);
+            color: white;
+            width: 24px; height: 24px;
+            display: inline-flex; justify-content: center; align-items: center;
+            border-radius: 50%; margin-right: 15px; font-size: 0.9rem;
+        }
+
+        /* 기출 함정/팁 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center;}
+        
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fef08a 40%); font-weight: bold; color: var(--primary); }
+
+        /* 1초 암기 박스 */
+        .memorize-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 40px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+        }
+        
+        .memorize-box h2 { border: none; justify-content: center; color: #facc15; }
+        .mnemonic { font-size: 2.2rem; font-weight: 900; letter-spacing: 5px; color: #38bdf8; margin: 20px 0; background: rgba(255,255,255,0.1); display: inline-block; padding: 15px 30px; border-radius: 12px; border: 2px dashed #38bdf8;}
+
+        @media (max-width: 768px) {
+            .sql-grid { grid-template-columns: 1fr 1fr; }
+            .order-container { flex-direction: column; }
+        }
+        @media (max-width: 480px) {
+            .sql-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🗡️ 2과목 1장: SQL 명령어 4대장과 SELECT 기초</h1>
+        <p>데이터베이스에게 내리는 명령어(SQL)들을 성격에 따라 4개로 분류합니다.<br>명령어들의 소속을 정확히 구별하는 것이 모든 SQL 문제의 시작입니다!</p>
+    </div>
+
+    <!-- 1. SQL 4대장 -->
+    <div class="section-card">
+        <h2 style="before: content: '⚔️';">1. SQL 언어의 4가지 분류 (매우 중요!)</h2>
+        
+        <div class="sql-grid">
+            <!-- DDL -->
+            <div class="sql-card c-ddl">
+                <div class="sql-title">DDL</div>
+                <div class="sql-full">Data Definition Language</div>
+                <div class="sql-cmds">
+                    CREATE<br>ALTER<br>DROP<br>RENAME<br>TRUNCATE
+                </div>
+                <div class="sql-desc"><strong>(데이터 정의어)</strong><br>건물(테이블)의 뼈대를 세우고, 고치고, 부수는 명령어들입니다. <strong>실행 즉시 DB에 영구 반영(Auto-Commit)</strong>되므로 롤백(취소)이 불가능합니다.</div>
+            </div>
+
+            <!-- DML -->
+            <div class="sql-card c-dml">
+                <div class="sql-title">DML</div>
+                <div class="sql-full">Data Manipulation Language</div>
+                <div class="sql-cmds" style="color: #16a34a;">
+                    SELECT<br>INSERT<br>UPDATE<br>DELETE
+                </div>
+                <div class="sql-desc"><strong>(데이터 조작어)</strong><br>건물 안에 사람(데이터)을 넣고, 빼고, 조회하는 가장 많이 쓰는 명령어들입니다. 반드시 <strong>수동으로 Commit</strong>을 해줘야 반영됩니다.</div>
+            </div>
+
+            <!-- DCL -->
+            <div class="sql-card c-dcl">
+                <div class="sql-title">DCL</div>
+                <div class="sql-full">Data Control Language</div>
+                <div class="sql-cmds" style="color: #d97706;">
+                    GRANT<br>REVOKE
+                </div>
+                <div class="sql-desc"><strong>(데이터 제어어)</strong><br>DBA가 사용자에게 권한을 주거나(GRANT) 뺏는(REVOKE) 보안 관련 명령어입니다.</div>
+            </div>
+
+            <!-- TCL -->
+            <div class="sql-card c-tcl">
+                <div class="sql-title">TCL</div>
+                <div class="sql-full">Transaction Control Language</div>
+                <div class="sql-cmds" style="color: #e11d48;">
+                    COMMIT<br>ROLLBACK<br>SAVEPOINT
+                </div>
+                <div class="sql-desc"><strong>(트랜잭션 제어어)</strong><br>DML(조작어)로 작업한 내용을 최종 승인(Commit)하거나, 에러가 났을 때 작업 전으로 취소(Rollback)시키는 생명줄입니다.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 기출 0순위 비교표 -->
+    <div class="section-card">
+        <h2 style="before: content: '💣';">2. 100% 출제 기출: DELETE vs TRUNCATE vs DROP</h2>
+        <p>세 가지 모두 "지운다"는 뜻이지만, 동작 원리와 무시무시한 파괴력이 완전히 다릅니다. 이 표는 <strong>그대로 외워두시면 무조건 1문제를 맞춥니다.</strong></p>
+
+        <table>
+            <tr>
+                <th width="15%">구분</th>
+                <th width="28%" class="tb-delete">DELETE (DML)</th>
+                <th width="28%" class="tb-truncate">TRUNCATE (DDL)</th>
+                <th width="29%" class="tb-drop">DROP (DDL)</th>
+            </tr>
+            <tr>
+                <td><strong>분류</strong></td>
+                <td>DML (조작어)</td>
+                <td><span class="highlight">DDL (정의어)</span></td>
+                <td>DDL (정의어)</td>
+            </tr>
+            <tr>
+                <td><strong>삭제 대상</strong></td>
+                <td>데이터(Row)만 삭제</td>
+                <td>데이터(Row)만 전체 싹둑 삭제</td>
+                <td>데이터 + 테이블 뼈대까지 폭파</td>
+            </tr>
+            <tr>
+                <td><strong>삭제 범위</strong></td>
+                <td>WHERE 조건절로 일부만 골라서 삭제 가능</td>
+                <td><span class="highlight">WHERE 조건절 불가능</span> (무조건 전체 삭제)</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td><strong>로그 / 속도</strong></td>
+                <td>지울 때마다 로그를 남김 (매우 느림)</td>
+                <td>로그를 남기지 않음 <span class="highlight">(매우 빠름)</span></td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td><strong>롤백(취소)</strong></td>
+                <td><strong>ROLLBACK 가능 ⭕</strong></td>
+                <td><span class="highlight">ROLLBACK 불가능 ❌</span><br>(Auto-Commit)</td>
+                <td>ROLLBACK 불가능 ❌<br>(Auto-Commit)</td>
+            </tr>
+            <tr>
+                <td><strong>테이블 구조(뼈대)</strong></td>
+                <td>남아있음</td>
+                <td>남아있음 (껍데기만 남음)</td>
+                <td><strong>완전히 날아감 (존재 X)</strong></td>
+            </tr>
+        </table>
+
+        <div class="alert-box">
+            <h4>🚨 핵심 기출 함정</h4>
+            <p><strong>"모든 데이터를 가장 빠르게 지우면서 테이블 구조(뼈대)는 남기고 싶다."</strong> ➔ 정답은 <code>DELETE</code>가 아니라 <strong><code>TRUNCATE</code></strong>입니다! (DELETE는 로그를 일일이 남기기 때문에 용량이 크면 하루 종일 걸립니다.)</p>
+        </div>
+    </div>
+
+    <!-- 3. SELECT 실행 순서 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🔍';">3. SELECT 구문의 6가지 뼈대 (작성 순서 vs 실행 순서)</h2>
+        <p>수만 건의 데이터 중 원하는 데이터를 찾아내는 <code>SELECT</code> 쿼리는 작성하는 순서와, 컴퓨터(DB)가 실제로 실행하는 순서가 <strong>완전히 다릅니다.</strong></p>
+
+        <div class="order-container">
+            <!-- 작성 순서 -->
+            <div class="order-box">
+                <h3 class="bg-write">✍️ 개발자가 쿼리를 '작성'하는 순서</h3>
+                <ul class="order-list">
+                    <li><span>1</span> SELECT (조회할 컬럼)</li>
+                    <li><span>2</span> FROM (대상 테이블)</li>
+                    <li><span>3</span> WHERE (데이터 필터 조건)</li>
+                    <li><span>4</span> GROUP BY (그룹화할 컬럼)</li>
+                    <li><span>5</span> HAVING (그룹에 대한 조건)</li>
+                    <li><span>6</span> ORDER BY (정렬 기준)</li>
+                </ul>
+            </div>
+
+            <!-- 화살표 (모바일에서 숨김) -->
+            <div style="display: flex; align-items: center; font-size: 2.5rem; color: #cbd5e1; font-weight: bold;">➔</div>
+
+            <!-- 실행 순서 -->
+            <div class="order-box">
+                <h3 class="bg-run">⚙️ DB가 쿼리를 '실행'하는 순서 (시험 출제!)</h3>
+                <ul class="order-list">
+                    <li><span style="background: var(--secondary)">1</span> FROM (어느 테이블에서?)</li>
+                    <li><span style="background: var(--secondary)">2</span> WHERE (어떤 데이터를 뽑아서?)</li>
+                    <li><span style="background: var(--secondary)">3</span> GROUP BY (어떻게 그룹을 묶고?)</li>
+                    <li><span style="background: var(--secondary)">4</span> HAVING (그 그룹 중 누구를 살릴까?)</li>
+                    <li><span style="background: var(--accent)">5</span> SELECT (그중 어떤 컬럼만 보여줄까?)</li>
+                    <li><span style="background: var(--success)">6</span> ORDER BY (마지막으로 어떻게 정렬할까?)</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 1초컷 암기 -->
+        <div class="memorize-box">
+            <h2>🎯 SELECT 실행 순서 1초 컷 암기법</h2>
+            <p style="font-size: 1.1rem; opacity: 0.9;">순서를 나열하라는 문제가 단골로 나옵니다. 앞글자만 따서 무조건 입에 붙이세요!</p>
+            <div class="mnemonic">" 프 · 웨 · 그 · 해 · 셀 · 오 "</div>
+            <p style="margin-top: 10px; font-size: 1rem; color: #94a3b8;">
+                ( <strong>FR</strong>OM ➔ <strong>WH</strong>ERE ➔ <strong>G</strong>ROUP BY ➔ <strong>HA</strong>VING ➔ <strong>SEL</strong>ECT ➔ <strong>O</strong>RDER BY )
+            </p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
