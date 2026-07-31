@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 실전: DDL과 제약조건 예시</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0284c7; /* Sky blue */
+            --accent: #ef4444; /* Red */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #8b5cf6; /* Purple */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #cbd5e1; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; }
+        .string { color: #a7f3d0; }
+        .comment { color: #94a3b8; font-style: italic; }
+
+        /* 에러 콘솔 */
+        .error-console {
+            background: #000000;
+            color: #ef4444;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            border-left: 5px solid #dc2626;
+        }
+        .success-console {
+            background: #000000;
+            color: #10b981;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            border-left: 5px solid #059669;
+        }
+
+        /* 기출 함정 박스 */
+        .alert-box { background: #fef2f2; border-left: 5px solid var(--accent); padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0; }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+        
+        .info-box { background: #eff6ff; border-left: 5px solid var(--secondary); padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0; }
+        .info-box h4 { margin: 0 0 10px 0; color: var(--secondary); display: flex; align-items: center; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🚨 실전 SQL 쿼리: DDL과 제약조건 에러 분석</h1>
+        <p>무결성을 지키기 위해 설정해 둔 PK, FK 제약조건이<br>잘못된 데이터 조작을 만났을 때 어떻게 비명을 지르는지 확인합니다.</p>
+    </div>
+
+    <!-- 1. PRIMARY KEY 위배 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔑';">1. PRIMARY KEY (기본키) 제약조건 위배</h2>
+        <p><code>STUDENT</code> 테이블의 <code>stu_no</code>는 기본키(PK)입니다. <strong>중복 불가(UNIQUE) + 빈칸 불가(NOT NULL)</strong> 규칙이 강제됩니다.</p>
+
+        <div class="alert-box">
+            <h4>❌ 상황 A: 기존 학번과 동일한 학번을 넣으려 할 때</h4>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--accent);">
+                <span class="comment">-- 이미 존재하는 '옥한빛'의 학번(20153075)으로 신입생 추가 시도</span><br>
+                <span class="keyword">INSERT INTO</span> student (stu_no, stu_name, stu_dept)<br>
+                <span class="keyword">VALUES</span> (<span class="string">'20153075'</span>, <span class="string">'신입생'</span>, <span class="string">'기계'</span>);
+            </div>
+            <div class="error-console">
+                ORA-00001: 무결성 제약 조건(SYS_C001234)에 위배됩니다.<br>
+                (Unique constraint violated)
+            </div>
+        </div>
+
+        <div class="alert-box">
+            <h4>❌ 상황 B: 학번을 빈칸으로 넣으려 할 때</h4>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--accent);">
+                <span class="comment">-- 학번(PK)에 NULL 값을 강제로 삽입 시도</span><br>
+                <span class="keyword">INSERT INTO</span> student (stu_no, stu_name)<br>
+                <span class="keyword">VALUES</span> (<span class="keyword">NULL</span>, <span class="string">'유령학생'</span>);
+            </div>
+            <div class="error-console">
+                ORA-01400: NULL을 (STUDENT.STU_NO) 안에 삽입할 수 없습니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. FOREIGN KEY 위배 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔗';">2. FOREIGN KEY (외래키) 제약조건 위배</h2>
+        <p><code>ENROL</code> 테이블은 성적을 기록할 때, <strong>반드시 <code>STUDENT</code>에 있는 학번과 <code>SUBJECT</code>에 있는 과목코드만 허용</strong>합니다.</p>
+
+        <div class="alert-box">
+            <h4>❌ 상황: 없는 학생의 성적을 등록하려 할 때</h4>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--accent);">
+                <span class="comment">-- 99999999 라는 학번은 STUDENT 테이블에 없음!</span><br>
+                <span class="keyword">INSERT INTO</span> enrol (sub_no, stu_no, enr_grade)<br>
+                <span class="keyword">VALUES</span> (<span class="string">'101'</span>, <span class="string">'99999999'</span>, 100);
+            </div>
+            <div class="error-console">
+                ORA-02291: 무결성 제약조건이 위배되었습니다 - 부모 키가 없습니다.<br>
+                (Parent key not found)
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. CASCADE의 위력 -->
+    <div class="section-card">
+        <h2 style="before: content: '💣';">3. 부모 데이터 삭제 시 발생하는 일 (CASCADE)</h2>
+        <p><code>STUDENT</code>의 '옥한빛(20153075)' 학생이 자퇴를 해서 DB에서 지우려고 합니다. 그런데 옥한빛은 현재 <code>ENROL</code> 테이블에 수강 내역(102, 105 과목)이 남아있습니다.</p>
+
+        <div class="alert-box" style="background: #fffbeb; border-left-color: var(--warning);">
+            <h4 style="color: var(--warning);">⚠️ 참조 무결성 기본 작동 방식</h4>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--warning);">
+                <span class="keyword">DELETE FROM</span> student <span class="keyword">WHERE</span> stu_no = <span class="string">'20153075'</span>;
+            </div>
+            <div class="error-console" style="color: #f59e0b; border-left-color: #d97706;">
+                ORA-02292: 무결성 제약조건이 위배되었습니다 - 자식 레코드가 발견되었습니다.<br>
+                (Child record found)
+            </div>
+            <p style="margin-top: 10px; font-size: 0.95rem;">➔ <strong>자식(수강내역)이 아직 부모(학생)를 가리키고 있어서, DB가 부모의 삭제를 막아버립니다.</strong> (고아 데이터를 만들지 않기 위함)</p>
+        </div>
+
+        <div class="info-box">
+            <h4>✅ 만약 테이블 생성 시 'ON DELETE CASCADE'를 주었다면?</h4>
+            <p style="margin-top: 0; font-size: 0.95rem;">애초에 테이블을 만들 때 <code>ON DELETE CASCADE</code> 옵션을 달아두었다면 결과는 완전히 달라집니다.</p>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--secondary);">
+                <span class="keyword">DELETE FROM</span> student <span class="keyword">WHERE</span> stu_no = <span class="string">'20153075'</span>;
+            </div>
+            <div class="success-console">
+                1 행이 삭제되었습니다.<br>
+                (시스템 백그라운드 메시지: ENROL 테이블에서 20153075 학생의 수강 내역 2건도 연쇄적으로 삭제되었습니다.)
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. ALTER TABLE -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🛠️';">4. 테이블 구조 변경 (ALTER TABLE)</h2>
+        <p>학생 테이블(STUDENT)을 쓰다 보니, 이메일 주소를 받을 컬럼이 누락되어 뒤늦게 추가하고 이름의 길이 제한을 수정하는 실무 예시입니다.</p>
+
+        <div class="sql-box" style="border-left-color: var(--info);">
+            <span class="comment">-- 1. [컬럼 추가] 이메일 컬럼 추가</span><br>
+            <span class="keyword">ALTER TABLE</span> student <span class="keyword">ADD</span> (stu_email <span class="keyword">varchar</span>(50));<br><br>
+            
+            <span class="comment">-- 2. [컬럼 수정] 학생 이름 길이를 12에서 20으로 늘림 (Oracle 표준)</span><br>
+            <span class="keyword">ALTER TABLE</span> student <span class="keyword">MODIFY</span> (stu_name <span class="keyword">varchar</span>(20));<br><br>
+            
+            <span class="comment">-- 3. [컬럼 삭제] 사용하지 않는 체중(stu_weight) 컬럼 날리기</span><br>
+            <span class="keyword">ALTER TABLE</span> student <span class="keyword">DROP COLUMN</span> stu_weight;
+        </div>
+        
+        <div class="alert-box">
+            <h4>🚨 SQLD 기출 함정 포인트</h4>
+            <p style="margin-bottom: 0;">컬럼을 수정할 때 <strong>오라클은 <code>MODIFY</code>를 쓰고, SQL Server는 <code>ALTER COLUMN</code>을 씁니다.</strong> 시험 문제에서 "다음 중 SQL Server에서 올바른 명령어는?" 이라고 물어보면 보기 중 <code>ALTER COLUMN</code>을 찾으셔야 합니다!</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목: 계층형 질의 & Top N 쿼리 상세</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #16a34a; /* Green */
+            --accent: #e11d48; /* Rose */
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #0284c7;
+            --bg-color: #f8fafc;
+            --border: #e2e8f0;
+        }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg-color); color: #334155; line-height: 1.6; padding: 30px; }
+        .container { max-width: 950px; margin: 0 auto; }
+        
+        .header { background: linear-gradient(135deg, #1e293b, #065f46); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.2rem; }
+        
+        .section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-top: 0; }
+        
+        .sql-box { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 1.05rem; margin: 15px 0; line-height: 1.5; }
+        .keyword { color: #f472b6; font-weight: bold; }
+        .func { color: #38bdf8; font-weight: bold; }
+        .comment { color: #94a3b8; font-style: italic; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+        .result-table th { background: #f1f5f9; }
+        
+        .highlight-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.95rem; }
+        .alert-box { background: #fef2f2; border-left: 5px solid var(--accent); padding: 15px; border-radius: 4px; margin: 15px 0; }
+        
+        /* 계층 시각화용 클래스 */
+        .lv1 { font-weight: bold; color: #b91c1c; text-align: left !important; padding-left: 20px !important; }
+        .lv2 { font-weight: bold; color: #c2410c; text-align: left !important; padding-left: 40px !important; }
+        .lv3 { color: #1d4ed8; text-align: left !important; padding-left: 60px !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🌳 계층형 질의 & Top N 쿼리 심층 분석</h1>
+        <p>트리(Tree) 순회 방향의 원리와 ROWNUM 실행 순서 버그의 진짜 이유를 파헤칩니다.</p>
+    </div>
+
+    <!-- 0. 테스트 데이터 -->
+    <div class="section" style="background: #f1f5f9; padding: 20px;">
+        <h3 style="margin-top: 0;">📋 [베이스 데이터] 사원(EMP) 테이블 구조</h3>
+        <p>모든 계층형 쿼리는 <strong>'자신의 PK'</strong>와 <strong>'부모를 가리키는 FK'</strong>가 한 테이블 안에 있을 때 성립합니다.</p>
+        <table class="result-table" style="max-width: 600px; margin: 0 auto; background: white;">
+            <tr><th>사번 (EMP_NO)</th><th>이름 (EMP_NAME)</th><th>매니저사번 (MGR_NO)</th></tr>
+            <tr><td>100</td><td style="font-weight: bold;">나사장</td><td style="color: #94a3b8;">NULL</td></tr>
+            <tr><td>101</td><td>김팀장</td><td>100</td></tr>
+            <tr><td>102</td><td>박팀장</td><td>100</td></tr>
+            <tr><td>103</td><td>이사원</td><td>101</td></tr>
+        </table>
+    </div>
+
+    <!-- 1. 계층형 질의 작동 원리 -->
+    <div class="section">
+        <h2>1. PRIOR의 진짜 의미 (순방향 vs 역방향)</h2>
+        <p>개발자 입장에서 <code>PRIOR</code>는 <strong>"방금 전 루프(Loop)에서 읽은 데이터"</strong>를 뜻하는 포인터(Pointer) 예약어입니다.</p>
+        
+        <h3>⬇️ 순방향 (Top-Down): "내 부하직원 찾아라!"</h3>
+        <div class="sql-box" style="border-left: 5px solid var(--success);">
+            <span class="keyword">SELECT</span> LEVEL, 사번, 이름, 매니저사번<br>
+            <span class="keyword">FROM</span> 사원<br>
+            <span class="keyword">START WITH</span> 매니저사번 <span class="keyword">IS NULL</span> <span class="comment">-- 1. [Root] 나사장을 먼저 짚는다. (LEVEL 1)</span><br>
+            <span class="keyword">CONNECT BY</span> <strong style="color:#ef4444;">PRIOR</strong> 사번 = 매니저사번;
+        </div>
+        
+        <div class="highlight-box">
+            <strong>💡 데이터베이스의 내부 동작 (해석):</strong><br>
+            <ol style="margin-bottom: 0;">
+                <li>나사장을 읽는다. 나사장의 <strong>사번은 100</strong>이다.</li>
+                <li><code>CONNECT BY</code>를 만난다. <strong>"방금 읽은(PRIOR) 사번(100)이 매니저사번인 놈들을 찾아!"</strong></li>
+                <li>매니저사번이 100인 '김팀장', '박팀장'을 데려온다. (얘네가 LEVEL 2)</li>
+                <li>김팀장을 읽는다. 김팀장의 <strong>사번은 101</strong>이다.</li>
+                <li>다시 <strong>"방금 읽은(PRIOR) 사번(101)이 매니저사번인 놈을 찾아!"</strong> ➔ '이사원' 데려옴 (LEVEL 3)</li>
+            </ol>
+        </div>
+        <p style="text-align:center; font-weight:bold; color:var(--success); margin-top:10px;">➔ 결론: 위에서 아래로 파고드는 순방향 전개가 됨!</p>
+
+        <hr style="border: 1px dashed var(--border); margin: 30px 0;">
+
+        <h3>⬆️ 역방향 (Bottom-Up): "내 상사를 찾아라!"</h3>
+        <div class="sql-box" style="border-left: 5px solid var(--warning);">
+            <span class="keyword">SELECT</span> LEVEL, 사번, 이름, 매니저사번<br>
+            <span class="keyword">FROM</span> 사원<br>
+            <span class="keyword">START WITH</span> 이름 = <span class="keyword">'이사원'</span> <span class="comment">-- 1. [Root] 맨 밑단 이사원을 짚는다. (LEVEL 1)</span><br>
+            <span class="keyword">CONNECT BY</span> <strong style="color:#ef4444;">PRIOR</strong> 매니저사번 = 사번;
+        </div>
+
+        <div class="highlight-box">
+            <strong>💡 데이터베이스의 내부 동작 (해석):</strong><br>
+            <ol style="margin-bottom: 0;">
+                <li>이사원을 읽는다. 이사원의 <strong>매니저사번은 101</strong>이다.</li>
+                <li><code>CONNECT BY</code>를 만난다. <strong>"방금 읽은(PRIOR) 매니저사번(101)이 본인의 사번인 놈을 찾아!"</strong></li>
+                <li>사번이 101인 '김팀장'을 데려온다. (얘가 LEVEL 2)</li>
+                <li>김팀장을 읽는다. 김팀장의 <strong>매니저사번은 100</strong>이다.</li>
+                <li>다시 <strong>"방금 읽은(PRIOR) 매니저사번(100)이 본인의 사번인 놈을 찾아!"</strong> ➔ '나사장' 데려옴 (LEVEL 3)</li>
+            </ol>
+        </div>
+        <p style="text-align:center; font-weight:bold; color:var(--warning); margin-top:10px;">➔ 결론: 아래에서 위로 거슬러 올라가는 역방향 전개가 됨!</p>
+    </div>
+
+    <!-- 2. Top N 쿼리 -->
+    <div class="section">
+        <h2>2. Top N 쿼리와 ROWNUM 실행 순서의 함정</h2>
+        <p>게시판 페이징이나 상위 N개 추출 시 오라클에서는 <code>ROWNUM</code>(데이터가 추출되는 순서대로 부여되는 가짜 일련번호)을 씁니다. 여기서 실무/시험 공통으로 가장 많이 터지는 버그가 있습니다.</p>
+
+        <div class="alert-box">
+            <h3 style="margin-top: 0; color: var(--accent);">❌ 치명적 논리 오류: 정렬(ORDER BY)의 배신</h3>
+            <div class="sql-box" style="margin-top: 10px;">
+                <span class="keyword">SELECT</span> 이름, 키<br>
+                <span class="keyword">FROM</span> 학생<br>
+                <span class="keyword">WHERE ROWNUM</span> <= 3<br>
+                <span class="keyword">ORDER BY</span> 키 <span class="keyword">DESC</span>;
+            </div>
+            
+            <p style="margin-bottom: 5px;"><strong>[디버깅 리포트]</strong></p>
+            SQL의 실행 순서는 <strong>FROM ➔ WHERE ➔ SELECT ➔ ORDER BY</strong> 입니다.<br>
+            데이터베이스는 키 순서대로 줄을 세운 다음 3명을 뽑는 게 아니라,<br>
+            <code>WHERE</code>절에서 <strong>테이블에 저장된 순서대로 아무나 3명을 덜컥 뽑아버립니다(ROWNUM).</strong><br>
+            그리고 나서 맨 마지막에 <code>ORDER BY</code>를 만나 그 3명 안에서만 순서를 정렬합니다. ➔ <strong>원하는 결과(Top 3)가 절대 안 나옴!</strong>
+        </div>
+
+        <div class="highlight-box" style="border-color: var(--success); background: #f0fdf4;">
+            <h3 style="margin-top: 0; color: var(--success);">✅ 해결책: 인라인 뷰(Inline View)를 이용한 강제 정렬</h3>
+            <p>이 문제를 해결하려면 서브쿼리(인라인 뷰)를 만들어 <strong>정렬(ORDER BY)을 가장 먼저 강제로 실행</strong>시켜야 합니다.</p>
+            
+            <div class="sql-box">
+                <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> (<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">SELECT</span> 이름, 키<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">FROM</span> 학생<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">ORDER BY</span> 키 <span class="keyword">DESC</span>  <span class="comment">-- 1. 무조건 줄부터 세워서 완벽한 표(가상 테이블)를 만든다!</span><br>
+                )<br>
+                <span class="keyword">WHERE ROWNUM</span> <= 3;  <span class="comment">-- 2. 완벽히 정렬된 표의 윗부분에서 3칸을 썰어낸다!</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

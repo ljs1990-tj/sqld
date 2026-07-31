@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목: DDL과 제약조건 완벽 분석</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #3b82f6; /* Blue */
+            --accent: #ef4444; /* Red */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #8b5cf6; /* Purple */
+            --bg-color: #f8fafc;
+            --border: #e2e8f0;
+        }
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: var(--bg-color); color: #334155; line-height: 1.6; padding: 30px; }
+        .container { max-width: 950px; margin: 0 auto; }
+        
+        .header { background: linear-gradient(135deg, #0f172a, #1e3a8a); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.2rem; }
+        
+        .section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; }
+        
+        .sql-box { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 1.05rem; margin: 15px 0; line-height: 1.5; }
+        .keyword { color: #f472b6; font-weight: bold; }
+        .constraint { color: #fde047; font-weight: bold; } /* Yellow for Constraints */
+        .comment { color: #94a3b8; font-style: italic; }
+        .type { color: #6ee7b7; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border); padding: 12px; text-align: left; }
+        .result-table th { background: #f1f5f9; color: var(--primary); text-align: center; }
+        
+        .alert-box { background: #fef2f2; border-left: 5px solid var(--accent); padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .success-box { background: #f0fdf4; border-left: 5px solid var(--success); padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .warning-box { background: #fffbeb; border-left: 5px solid var(--warning); padding: 15px; border-radius: 4px; margin: 15px 0; }
+
+        .center { text-align: center !important; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🏗️ SQLD 2과목 심화: DDL과 제약조건</h1>
+        <p>테이블을 생성하고(CREATE), 수정하고(ALTER), 삭제하는(DROP) 명령어와<br>데이터 무결성을 지키는 제약조건(Constraints)의 핵심 기출 포인트를 파헤칩니다.</p>
+    </div>
+
+    <!-- 1. 제약조건 (Constraints) -->
+    <div class="section">
+        <h2 style="before: content: '🔒';">1. 테이블 생성과 5대 제약조건 (CREATE TABLE)</h2>
+        <p>처음 제공해주신 <code>ENROL(수강)</code> 테이블의 쿼리를 자세히 뜯어보면, 데이터의 무결성(쓰레기 데이터가 들어오는 것을 방지)을 위한 <strong>제약조건(Constraints)</strong>이 숨어있습니다.</p>
+        
+        <div class="sql-box" style="border-left: 5px solid var(--success);">
+            <span class="keyword">CREATE TABLE</span> enrol (<br>
+            &nbsp;&nbsp;sub_no <span class="type">char(3)</span> <span class="constraint">REFERENCES</span> subject(sub_no), <span class="comment">-- 외래키 (FK)</span><br>
+            &nbsp;&nbsp;stu_no <span class="type">char(8)</span> <span class="constraint">REFERENCES</span> student(stu_no), <span class="comment">-- 외래키 (FK)</span><br>
+            &nbsp;&nbsp;enr_grade <span class="type">NUMBER</span><br>
+            );
+        </div>
+
+        <table class="result-table">
+            <tr><th width="20%">제약조건</th><th width="80%">설명 및 기출 포인트</th></tr>
+            <tr>
+                <td class="center"><strong>PRIMARY KEY (PK)</strong></td>
+                <td><strong>기본키.</strong> 하나의 테이블에서 각 행(Row)을 유일하게 식별합니다.<br><span style="color:var(--accent);">➔ 특징: <code>UNIQUE</code>(중복 불가) + <code>NOT NULL</code>(비어있을 수 없음) 속성을 동시에 가짐 (시험 단골!)</span></td>
+            </tr>
+            <tr>
+                <td class="center"><strong>FOREIGN KEY (FK)</strong></td>
+                <td><strong>외래키.</strong> 다른 테이블의 PK나 UNIQUE 컬럼을 참조합니다. (위 코드의 <code>REFERENCES</code>)<br>➔ 수강 테이블(enrol)에 성적을 넣으려면, <strong>반드시 학생 테이블(student)에 존재하는 학번(stu_no)</strong>이어야만 데이터 삽입이 가능합니다.</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>UNIQUE</strong></td>
+                <td>고유키. 중복된 값을 허용하지 않습니다. (예: 주민번호, 이메일)<br>➔ 단, <strong>NULL 값은 허용하며, NULL은 여러 개 존재할 수 있습니다.</strong> (PK와의 결정적 차이)</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>NOT NULL</strong></td>
+                <td>해당 컬럼에 NULL(빈칸) 값이 들어오는 것을 원천 차단합니다. 필수 입력값.</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>CHECK</strong></td>
+                <td>입력될 수 있는 데이터의 조건을 구체적으로 제한합니다.<br>➔ 예: <code>CHECK (enr_grade >= 0 AND enr_grade <= 100)</code> 점수는 0~100점만 가능!</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 2. 기출 0순위: CASCADE -->
+    <div class="section">
+        <h2 style="before: content: '💣';">2. 기출 0순위: 외래키 연쇄 삭제 (CASCADE)</h2>
+        <p>만약 자퇴를 해서 <code>STUDENT</code> 테이블에서 '옥한빛(20153075)' 학생의 데이터를 지우려(DELETE)고 하면 어떻게 될까요?</p>
+
+        <div class="alert-box">
+            <h4 style="margin: 0 0 5px 0; color: var(--accent);">❌ 기본 상태: 무결성 제약조건 위배 에러 (ORA-02292)</h4>
+            <p style="margin: 0;">현재 <code>ENROL</code> 테이블에는 옥한빛 학생의 수강 내역(102번, 105번 과목)이 남아있습니다. 자식 데이터(수강내역)가 부모 데이터(학생)를 참조하고 있기 때문에, <strong>DB는 부모 데이터의 삭제를 거부하며 에러를 발생시킵니다.</strong></p>
+        </div>
+
+        <div class="success-box">
+            <h4 style="margin: 0 0 5px 0; color: var(--success);">✅ 해결책: ON DELETE CASCADE / SET NULL</h4>
+            <p style="margin: 0 0 10px 0;">테이블을 생성할 때 참조 옵션을 달아주면 해결됩니다.</p>
+            <div class="sql-box" style="margin: 0; font-size: 0.9rem;">
+                <span class="comment">-- 1. CASCADE: 부모가 지워지면, 참조하던 자식 데이터(수강내역)도 함께 자동 삭제됨!</span><br>
+                <span class="keyword">REFERENCES</span> student(stu_no) <span class="constraint">ON DELETE CASCADE</span><br><br>
+                <span class="comment">-- 2. SET NULL: 부모가 지워지면, 자식 데이터의 학번 컬럼 값만 텅 빈 NULL로 변경됨!</span><br>
+                <span class="keyword">REFERENCES</span> student(stu_no) <span class="constraint">ON DELETE SET NULL</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ALTER TABLE -->
+    <div class="section">
+        <h2 style="before: content: '🛠️';">3. 구조 변경 (ALTER TABLE)</h2>
+        <p>개발 도중 스키마(테이블 구조)를 변경해야 할 때 사용하는 명령어입니다. <strong>시험에서는 Oracle과 SQL Server의 미묘한 문법 차이를 종종 출제합니다.</strong></p>
+
+        <div class="sql-box" style="border-left: 5px solid var(--info);">
+            <span class="comment">-- 1. 컬럼 추가 (ADD)</span><br>
+            <span class="keyword">ALTER TABLE</span> student <span class="keyword">ADD</span> (stu_age <span class="type">NUMBER</span>);<br><br>
+            
+            <span class="comment">-- 2. 컬럼 삭제 (DROP COLUMN)</span><br>
+            <span class="keyword">ALTER TABLE</span> student <span class="keyword">DROP COLUMN</span> stu_weight;<br><br>
+            
+            <span class="comment">-- 3. 컬럼 수정 (데이터 타입이나 길이 변경)</span><br>
+            <span class="comment">-- [Oracle 기준: MODIFY 키워드 사용]</span><br>
+            <span class="keyword">ALTER TABLE</span> student <span class="keyword">MODIFY</span> (stu_name <span class="type">varchar(20)</span>);<br>
+            <span class="comment">-- [SQL Server 기준: ALTER COLUMN 사용 (오답 보기로 자주 나옴!)]</span><br>
+            <span class="comment">-- ALTER TABLE student ALTER COLUMN stu_name varchar(20);</span>
+        </div>
+    </div>
+
+    <!-- 4. 삭제 3대장 완벽 비교 -->
+    <div class="section" style="margin-bottom: 0;">
+        <h2 style="before: content: '🔥';">4. 심화 기출: 삭제 3대장 (DELETE vs TRUNCATE vs DROP)</h2>
+        <p>데이터베이스의 데이터를 날려버리는 3가지 방식입니다. <strong>이 셋의 차이점을 묻는 문제는 SQLD 객관식 단골 1번 손님입니다.</strong></p>
+
+        <table class="result-table">
+            <tr>
+                <th width="15%">명령어</th>
+                <th width="15%">언어 종류</th>
+                <th width="20%">ROLLBACK (복구)</th>
+                <th width="20%">테이블 구조(껍데기)</th>
+                <th width="30%">특징 (로그 기록)</th>
+            </tr>
+            <tr>
+                <td class="center"><strong>DELETE</strong></td>
+                <td class="center">DML (조작어)</td>
+                <td class="center" style="color:var(--success); font-weight:bold;">가능 (O)</td>
+                <td class="center">유지됨</td>
+                <td>행(Row) 단위로 하나씩 지우며, 삭제 로그를 모두 남기기 때문에 <strong>가장 느림.</strong> 조건(WHERE) 지정 가능.</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>TRUNCATE</strong></td>
+                <td class="center" style="color:var(--accent);">DDL (정의어)</td>
+                <td class="center" style="color:var(--accent); font-weight:bold;">불가능 (X)</td>
+                <td class="center">유지됨</td>
+                <td>조건(WHERE) 없이 테이블 안의 모든 데이터를 한 번에 밀어버림. 로그를 안 남겨서 <strong>속도가 매우 빠름.</strong></td>
+            </tr>
+            <tr>
+                <td class="center"><strong>DROP</strong></td>
+                <td class="center" style="color:var(--accent);">DDL (정의어)</td>
+                <td class="center" style="color:var(--accent); font-weight:bold;">불가능 (X)</td>
+                <td class="center" style="color:var(--accent);">삭제됨 (소멸)</td>
+                <td>테이블 안에 있는 데이터는 물론, <strong>테이블 구조(껍데기) 자체를 DB에서 완전히 파괴해버림.</strong></td>
+            </tr>
+        </table>
+
+        <div class="warning-box">
+            <h4 style="margin: 0 0 5px 0; color: var(--warning);">🚨 SQLD 필수 암기: Auto Commit의 저주</h4>
+            <p style="margin: 0;"><code>CREATE</code>, <code>ALTER</code>, <code>DROP</code>, <code>TRUNCATE</code>와 같은 <strong>DDL 명령어는 실행 즉시 자동으로 COMMIT이 발생(Auto Commit)</strong>합니다.<br>즉, 개발자가 실수로 <code>TRUNCATE TABLE student;</code>를 쳤다면, <code>ROLLBACK;</code>을 외쳐도 이미 디스크에 영구 반영되어 데이터가 절대 돌아오지 않습니다!</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
