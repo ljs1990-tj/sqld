@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목: 그룹 함수 심층 분석</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0f766e;
+            --accent: #e11d48;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --info: #0284c7;
+            --bg-color: #f8fafc;
+            --border: #e2e8f0;
+        }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg-color); color: #334155; line-height: 1.6; padding: 30px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .header { background: linear-gradient(135deg, #1e293b, #0f766e); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.2rem; }
+        
+        .section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-top: 0; }
+        
+        .sql-box { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; font-family: monospace; font-size: 1.05rem; margin: 15px 0; }
+        .keyword { color: #f472b6; font-weight: bold; }
+        .func { color: #38bdf8; font-weight: bold; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border); padding: 10px; text-align: center; }
+        .result-table th { background: #f1f5f9; }
+        
+        /* 테이블 행 하이라이트 */
+        .row-base { background: #ffffff; }
+        .row-dept-sub { background: #ecfdf5; font-weight: bold; color: var(--success); } /* 학과별 소계 (초록) */
+        .row-grade-sub { background: #fffbeb; font-weight: bold; color: var(--warning); } /* 학년별 소계 (노랑) */
+        .row-grand { background: #fef2f2; font-weight: bold; color: var(--accent); } /* 전체 총계 (빨강) */
+        .null-txt { color: #94a3b8; font-style: italic; }
+
+        .equiv-box { background: #f8fafc; border: 2px dashed #cbd5e1; padding: 15px; border-radius: 8px; margin-top: 15px; font-size: 0.95rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📊 그룹 함수(ROLLUP, CUBE, GROUPING SETS) 완벽 해부</h1>
+        <p>이 함수들은 결국 <strong>"어떤 기준들의 집합을 UNION ALL로 묶어주는가?"</strong>를 이해하는 것이 핵심입니다.</p>
+    </div>
+
+    <!-- 0. 기본 상태 -->
+    <div class="section">
+        <h2>0. [기본] 일반 GROUP BY</h2>
+        <p>가장 기본적인 그룹핑입니다. 소계나 총계 따위는 없습니다.</p>
+        <div class="sql-box" style="border-left: 5px solid #64748b;">
+            <span class="keyword">SELECT</span> stu_dept, stu_grade, <span class="func">COUNT</span>(*)<br>
+            <span class="keyword">FROM</span> student <span class="keyword">GROUP BY</span> stu_dept, stu_grade;
+        </div>
+        <div class="equiv-box">
+            <strong>🎯 결과 조합 (총 1가지):</strong><br>
+            ① (학과 + 학년) 별 인원수
+        </div>
+    </div>
+
+    <!-- 1. ROLLUP -->
+    <div class="section">
+        <h2>1. ROLLUP(학과, 학년) : "오른쪽에서 왼쪽으로 계단식 소계"</h2>
+        <p>괄호 안에 적힌 컬럼을 <strong>오른쪽부터 하나씩 지워가며(무시하며)</strong> 그룹핑을 반복합니다.</p>
+        <div class="sql-box" style="border-left: 5px solid var(--success);">
+            <span class="keyword">SELECT</span> stu_dept, stu_grade, <span class="func">COUNT</span>(*)<br>
+            <span class="keyword">FROM</span> student <span class="keyword">GROUP BY ROLLUP</span>(stu_dept, stu_grade);
+        </div>
+        
+        <table class="result-table">
+            <tr><th>STU_DEPT</th><th>STU_GRADE</th><th>COUNT</th><th>설명</th></tr>
+            <tr class="row-base"><td>기계</td><td>1</td><td>2</td><td rowspan="2" style="color:#64748b;">① (학과+학년) 그룹핑</td></tr>
+            <tr class="row-base"><td>기계</td><td>2</td><td>1</td></tr>
+            <tr class="row-dept-sub"><td>기계</td><td class="null-txt">NULL</td><td>3</td><td>② 학년 무시 ➔ (학과)별 소계</td></tr>
+            <tr class="row-grand"><td class="null-txt">NULL</td><td class="null-txt">NULL</td><td>10</td><td>③ 전부 무시 ➔ () 전체 총계</td></tr>
+        </table>
+
+        <div class="equiv-box" style="border-color: var(--success);">
+            <strong>💡 시험 단골 문제: "위 ROLLUP 쿼리와 완전히 똑같은 결과를 내는 쿼리는?"</strong><br><br>
+            <span style="color: #64748b;">-- ① (학과+학년) 기준</span><br>
+            SELECT stu_dept, stu_grade, COUNT(*) FROM student GROUP BY stu_dept, stu_grade<br>
+            <span class="keyword">UNION ALL</span><br>
+            <span style="color: #64748b;">-- ② (학과) 기준</span><br>
+            SELECT stu_dept, NULL, COUNT(*) FROM student GROUP BY stu_dept<br>
+            <span class="keyword">UNION ALL</span><br>
+            <span style="color: #64748b;">-- ③ 전체 총계</span><br>
+            SELECT NULL, NULL, COUNT(*) FROM student;
+        </div>
+    </div>
+
+    <!-- 2. CUBE -->
+    <div class="section">
+        <h2>2. CUBE(학과, 학년) : "가능한 모든 경우의 수를 다 구해!"</h2>
+        <p>계단식이 아닙니다. 입력된 컬럼들로 만들 수 있는 <strong>모든 콤비네이션(조합)</strong>을 전부 계산합니다. (데이터 분석/다차원 분석용)</p>
+        <div class="sql-box" style="border-left: 5px solid var(--warning);">
+            <span class="keyword">SELECT</span> stu_dept, stu_grade, <span class="func">COUNT</span>(*)<br>
+            <span class="keyword">FROM</span> student <span class="keyword">GROUP BY CUBE</span>(stu_dept, stu_grade);
+        </div>
+        
+        <table class="result-table">
+            <tr><th>STU_DEPT</th><th>STU_GRADE</th><th>COUNT</th><th>설명</th></tr>
+            <tr class="row-base"><td colspan="3" style="color:#94a3b8;">( ROLLUP과 동일한 ①, ②, ③ 결과가 먼저 출력됨 )</td><td></td></tr>
+            <tr class="row-grade-sub"><td class="null-txt">NULL</td><td>1</td><td>4</td><td rowspan="2"><strong>④ 학과 무시 ➔ (학년)별 소계<br><span style="color:var(--accent); font-size:0.85rem;">(※ ROLLUP에는 이 결과가 없습니다!)</span></strong></td></tr>
+            <tr class="row-grade-sub"><td class="null-txt">NULL</td><td>2</td><td>3</td></tr>
+        </table>
+
+        <div class="equiv-box" style="border-color: var(--warning);">
+            <strong>🎯 CUBE는 4개의 쿼리를 UNION ALL 한 것과 같습니다. (2^2 = 4개)</strong><br>
+            ① GROUP BY 학과, 학년<br>
+            ② GROUP BY 학과<br>
+            ③ GROUP BY 학년 &nbsp;&nbsp;&nbsp; <strong>(추가됨!)</strong><br>
+            ④ 전체 총계
+        </div>
+    </div>
+
+    <!-- 3. GROUPING SETS -->
+    <div class="section">
+        <h2>3. GROUPING SETS(학과, 학년) : "내가 찍어준 것만 각각 구해와"</h2>
+        <p>서로 연관 지어서 소계를 묶지 않습니다. 괄호 안에 있는 항목들을 <strong>각각 독립적으로 그룹핑</strong>한 뒤 위아래로 붙여줍니다.</p>
+        <div class="sql-box" style="border-left: 5px solid var(--info);">
+            <span class="keyword">SELECT</span> stu_dept, stu_grade, <span class="func">COUNT</span>(*)<br>
+            <span class="keyword">FROM</span> student <span class="keyword">GROUP BY GROUPING SETS</span>(stu_dept, stu_grade);
+        </div>
+        
+        <table class="result-table">
+            <tr><th>STU_DEPT</th><th>STU_GRADE</th><th>COUNT</th><th>설명</th></tr>
+            <tr class="row-dept-sub"><td>기계</td><td class="null-txt">NULL</td><td>3</td><td rowspan="2">① (학과)별 소계</td></tr>
+            <tr class="row-dept-sub"><td>전기전자</td><td class="null-txt">NULL</td><td>3</td></tr>
+            <tr class="row-grade-sub"><td class="null-txt">NULL</td><td>1</td><td>4</td><td rowspan="2">② (학년)별 소계</td></tr>
+            <tr class="row-grade-sub"><td class="null-txt">NULL</td><td>2</td><td>3</td></tr>
+        </table>
+        
+        <p style="text-align: center; color: var(--accent); font-weight: bold; margin-top: 10px;">🚨 주의: (학과+학년) 전체 그룹핑도 없고, 전체 총계(10명)도 출력되지 않습니다!</p>
+
+        <div class="equiv-box" style="border-color: var(--info);">
+            <strong>🎯 GROUPING SETS는 딱 2개의 쿼리를 UNION ALL 한 것과 같습니다.</strong><br><br>
+            <span style="color: #64748b;">-- ① (학과) 기준</span><br>
+            SELECT stu_dept, NULL, COUNT(*) FROM student GROUP BY stu_dept<br>
+            <span class="keyword">UNION ALL</span><br>
+            <span style="color: #64748b;">-- ② (학년) 기준</span><br>
+            SELECT NULL, stu_grade, COUNT(*) FROM student GROUP BY stu_grade;
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
