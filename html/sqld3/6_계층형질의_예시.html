@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 실전: 계층형 질의 & Top N 쿼리 예시</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #16a34a; /* Green for Tree */
+            --accent: #e11d48; /* Rose */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #0284c7; /* Light Blue */
+            --purple: #8b5cf6;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #064e3b, #15803d);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #bbf7d0; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; }
+        .func { color: #38bdf8; font-weight: bold; }
+        .string { color: #a7f3d0; }
+        .comment { color: #94a3b8; font-style: italic; }
+        .highlight-word { color: #fde047; font-weight: bold; }
+
+        /* 결과 테이블 */
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border: 2px solid var(--border);
+        }
+
+        .result-table th, .result-table td { 
+            border: 1px solid var(--border); 
+            padding: 10px; 
+            text-align: center; 
+        }
+        .result-table th { background-color: #f1f5f9; color: var(--primary); font-weight: bold; }
+        
+        .level1-row { font-weight: bold; color: var(--accent); background: #fef2f2; }
+        .level2-row { font-weight: bold; color: var(--warning); background: #fffbeb; }
+        .level3-row { color: var(--info); }
+        .null-cell { color: #94a3b8; font-style: italic; background: #f8fafc; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .success-box h4 { margin: 0 0 10px 0; color: var(--success); display: flex; align-items: center; }
+
+        /* 탭 구조 스타일 */
+        .tab-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .tab-box {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .tab-box h4 { margin-top: 0; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; }
+        
+        @media (max-width: 768px) {
+            .tab-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🌳 실전 SQL 쿼리: 계층형 질의 & Top N 분석</h1>
+        <p>순방향과 역방향 탐색의 쿼리 차이를 눈으로 확인하고,<br>Top N 쿼리에서 가장 많이 틀리는 ROWNUM의 실행 순서 함정을 돌파합니다.</p>
+    </div>
+
+    <!-- 0. 가상 데이터 소개 -->
+    <div class="section-card" style="background: #f1f5f9; border: 1px dashed #cbd5e1; padding: 25px;">
+        <h3 style="margin-top: 0; color: var(--secondary);">📋 계층형 질의용 가상 데이터 (EMP)</h3>
+        <p style="margin-bottom: 10px; font-size: 0.95rem; color: #475569;">※ 100번 사장님 밑에 101번, 102번 팀장이 있고 그 밑에 사원들이 있는 전형적인 조직도입니다.</p>
+        <table class="result-table" style="width: auto; margin: 0 auto;">
+            <tr><th>EMP_NO(사번)</th><th>EMP_NAME(이름)</th><th>MGR_NO(매니저사번)</th></tr>
+            <tr class="level1-row"><td>100</td><td>👑 나사장</td><td class="null-cell">NULL</td></tr>
+            <tr class="level2-row"><td>101</td><td>💼 김팀장</td><td>100</td></tr>
+            <tr class="level2-row"><td>102</td><td>💼 박팀장</td><td>100</td></tr>
+            <tr class="level3-row"><td>103</td><td>🧑‍💼 이사원</td><td>101</td></tr>
+            <tr class="level3-row"><td>104</td><td>🧑‍💼 최사원</td><td>102</td></tr>
+        </table>
+    </div>
+
+    <!-- 1. 순방향 vs 역방향 질의 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔄';">1. 방향의 결정: PRIOR의 위치 (기출 0순위)</h2>
+        <p>시험에서 <code>PRIOR</code>의 위치를 보고 트리가 <strong>위에서 아래로 가는지(순방향)</strong>, <strong>아래서 위로 가는지(역방향)</strong> 맞추는 문제가 반드시 나옵니다.</p>
+
+        <div class="tab-container">
+            <!-- 순방향 -->
+            <div class="tab-box" style="border-top: 4px solid var(--success);">
+                <h4 style="color: var(--success);">[순방향] 사장님 ➔ 사원 탐색</h4>
+                <div class="sql-box" style="margin: 0; font-size: 0.85rem; border-left-color: var(--success); padding: 15px;">
+                    <span class="keyword">SELECT</span> LEVEL, emp_name, mgr_no<br>
+                    <span class="keyword">FROM</span> emp<br>
+                    <span class="highlight-word">START WITH</span> mgr_no <span class="keyword">IS NULL</span> <span class="comment">-- 시작: 나사장</span><br>
+                    <span class="keyword">CONNECT BY</span> <span class="highlight-word">PRIOR</span> emp_no = mgr_no;<br>
+                    <span class="comment">-- (나의 사번 = 누군가의 매니저사번)</span>
+                </div>
+                <table class="result-table">
+                    <tr><th>LEVEL</th><th>EMP_NAME</th></tr>
+                    <tr class="level1-row"><td>1</td><td style="text-align: left;">나사장</td></tr>
+                    <tr class="level2-row"><td>2</td><td style="text-align: left;">&nbsp;&nbsp;김팀장</td></tr>
+                    <tr class="level3-row"><td>3</td><td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;이사원</td></tr>
+                    <tr class="level2-row"><td>2</td><td style="text-align: left;">&nbsp;&nbsp;박팀장</td></tr>
+                    <tr class="level3-row"><td>3</td><td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;최사원</td></tr>
+                </table>
+            </div>
+
+            <!-- 역방향 -->
+            <div class="tab-box" style="border-top: 4px solid var(--accent);">
+                <h4 style="color: var(--accent);">[역방향] 사원 ➔ 사장님 탐색</h4>
+                <div class="sql-box" style="margin: 0; font-size: 0.85rem; border-left-color: var(--accent); padding: 15px;">
+                    <span class="keyword">SELECT</span> LEVEL, emp_name, mgr_no<br>
+                    <span class="keyword">FROM</span> emp<br>
+                    <span class="highlight-word">START WITH</span> emp_name = <span class="string">'최사원'</span> <span class="comment">-- 시작: 최사원</span><br>
+                    <span class="keyword">CONNECT BY PRIOR</span> mgr_no = emp_no;<br>
+                    <span class="comment">-- (나의 매니저사번 = 누군가의 사번)</span>
+                </div>
+                <table class="result-table">
+                    <tr><th>LEVEL</th><th>EMP_NAME</th></tr>
+                    <tr class="level3-row"><td>1</td><td style="text-align: left;">최사원</td></tr>
+                    <tr class="level2-row"><td>2</td><td style="text-align: left;">&nbsp;&nbsp;박팀장</td></tr>
+                    <tr class="level1-row"><td>3</td><td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;나사장</td></tr>
+                </table>
+            </div>
+        </div>
+        <p style="text-align: center; color: #475569; margin-top: 15px; font-weight: bold;">💡 [암기법] 프.자.부.순 : PRIOR 뒤에 자식(PK) 컬럼이 오면 '순방향'이다!</p>
+    </div>
+
+    <!-- 2. Top N 쿼리와 ROWNUM -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🏆';">2. Top N 쿼리: ROWNUM의 치명적 함정</h2>
+        <p><strong>🎓 요구사항:</strong> <code>STUDENT</code> 테이블에서 <strong>키(stu_height)가 가장 큰 3명의 학생</strong>을 조회하시오.</p>
+
+        <div class="alert-box">
+            <h4>❌ 오답 쿼리 (의도와 다르게 작동함)</h4>
+            <div class="sql-box" style="border-left-color: var(--accent); margin: 10px 0;">
+                <span class="keyword">SELECT</span> stu_name, stu_height<br>
+                <span class="keyword">FROM</span> student<br>
+                <span class="keyword">WHERE ROWNUM</span> &lt;= 3 &nbsp;&nbsp;&nbsp;<span class="comment">-- 1. 무작위로 3명을 먼저 뽑음 (함정!)</span><br>
+                <span class="keyword">ORDER BY</span> stu_height <span class="keyword">DESC</span>; <span class="comment">-- 2. 뽑힌 3명 안에서 정렬함</span>
+            </div>
+            <table class="result-table" style="width: auto; margin: 15px 0 0 0;">
+                <tr><th>STU_NAME</th><th>STU_HEIGHT</th><th>비고</th></tr>
+                <tr><td>옥한빛</td><td>177</td><td></td></tr>
+                <tr><td>이태연</td><td>162</td><td><strong style="color:var(--accent);">가장 큰 학생이 아님!</strong></td></tr>
+                <tr><td>유가인</td><td>154</td><td><strong style="color:var(--accent);">데이터 읽힌 순서대로 3명 짤림</strong></td></tr>
+            </table>
+        </div>
+
+        <div class="success-box">
+            <h4>✅ 정답 쿼리 (인라인 뷰 서브쿼리 사용)</h4>
+            <div class="sql-box" style="border-left-color: var(--success); margin: 10px 0;">
+                <span class="keyword">SELECT</span> * <br>
+                <span class="keyword">FROM</span> ( &nbsp;&nbsp;<span class="comment">-- 1. 안쪽에서 '미리 완벽하게' 정렬을 끝내놓는다.</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">SELECT</span> stu_name, stu_height <span class="keyword">FROM</span> student<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">WHERE</span> stu_height <span class="keyword">IS NOT NULL</span><br>
+                &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">ORDER BY</span> stu_height <span class="keyword">DESC</span><br>
+                )<br>
+                <span class="keyword">WHERE ROWNUM</span> &lt;= 3; <span class="comment">-- 2. 정렬된 덩어리에서 상위 3개만 깔끔하게 자른다.</span>
+            </div>
+            <table class="result-table" style="width: auto; margin: 15px 0 0 0;">
+                <tr><th>STU_NAME</th><th>STU_HEIGHT</th><th>비고</th></tr>
+                <tr><td>조민우</td><td>188</td><td><strong style="color:var(--success);">전체 1등</strong></td></tr>
+                <tr><td>옥한빛</td><td>177</td><td><strong style="color:var(--success);">전체 2등</strong></td></tr>
+                <tr><td>진현무</td><td>174</td><td><strong style="color:var(--success);">전체 3등</strong></td></tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 심화: 그룹 함수 심화 완벽 정복</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0f766e; /* Teal */
+            --accent: #e11d48; /* Rose */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #3b82f6; /* Blue */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #134e4a, #0f766e);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #ccfbf1; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.65rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before { margin-right: 12px; font-size: 1.4rem; }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; } /* Pink */
+        .func { color: #38bdf8; font-weight: bold; } /* Blue */
+        .comment { color: #94a3b8; font-style: italic; }
+
+        /* 3대 그룹 함수 그리드 */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+
+        .group-card {
+            background: #ffffff;
+            border: 1px solid var(--border);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            position: relative;
+        }
+
+        .group-card h3 { 
+            margin-top: 0; 
+            font-size: 1.3rem; 
+            border-bottom: 2px dashed #e2e8f0; 
+            padding-bottom: 10px; 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .badge { font-size: 0.85rem; padding: 4px 10px; border-radius: 20px; color: white; font-weight: normal; }
+        .bg-rollup { background-color: var(--info); }
+        .bg-cube { background-color: var(--warning); }
+        .bg-sets { background-color: var(--success); }
+
+        .c-rollup h3 { color: var(--info); }
+        .c-cube h3 { color: var(--warning); }
+        .c-sets h3 { color: var(--success); }
+
+        /* 결과 조합 시각화 박스 */
+        .combo-box {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            color: #475569;
+            margin-top: 15px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.95rem;
+        }
+        .combo-highlight { color: var(--accent); }
+
+        /* 비교 테이블 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 25px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        th, td { border: 1px solid var(--border); padding: 15px; text-align: center; line-height: 1.6; }
+        th { background-color: #f1f5f9; color: var(--primary); font-size: 1.05rem; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fef08a 40%); font-weight: bold; color: var(--primary); }
+
+        /* 1초 암기 박스 */
+        .memorize-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            margin-top: 40px;
+        }
+        
+        .memorize-box h2 { border: none; justify-content: center; color: #facc15; padding-bottom: 0; margin-bottom: 15px; }
+
+        @media (max-width: 768px) {
+            .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>📊 SQLD 2과목 심화: 그룹 함수 심화</h1>
+        <p>단순히 그룹을 묶는 것을 넘어, '소계'와 '총합'을 한 방에 뽑아냅니다.<br>각 함수가 어떤 조합의 결과를 만들어내는지 완벽히 외워야 합니다.</p>
+    </div>
+
+    <!-- 1. 3대 확장 그룹 함수 -->
+    <div class="section-card">
+        <h2 style="before: content: '🧮';">1. 3대 확장 그룹 함수 비교 (기출 0순위)</h2>
+        <p>인자로 <code>(A, B)</code> 두 개의 컬럼을 주었을 때, 각각 어떤 소계/총계를 만들어내는지 비교해 봅시다.</p>
+        
+        <div class="grid-3">
+            <!-- ROLLUP -->
+            <div class="group-card c-rollup">
+                <h3>① ROLLUP <span class="badge bg-rollup">N+1 개</span></h3>
+                <p>오른쪽에서 왼쪽으로 순차적으로 묶어가며 <strong>소계와 총계</strong>를 구합니다. <strong>'순서(방향성)'</strong>가 매우 중요합니다!</p>
+                <div class="combo-box">
+                    <div style="color:#0284c7; margin-bottom:5px;">GROUP BY ROLLUP(A, B)</div>
+                    1. (A, B)별 소계<br>
+                    2. (A)별 소계 <br>
+                    3. <span class="combo-highlight">() ➔ 전체 총계</span>
+                </div>
+                <p style="font-size: 0.85rem; color: #64748b; margin-top: 10px;">* 컬럼이 2개면 결과 조합은 3(2+1)가지가 나옵니다. ROLLUP(B,A)로 순서를 바꾸면 결과도 바뀝니다!</p>
+            </div>
+            
+            <!-- CUBE -->
+            <div class="group-card c-cube">
+                <h3>② CUBE <span class="badge bg-cube">2^N 개</span></h3>
+                <p>결합 가능한 <strong>모든 경우의 수(다차원)</strong>에 대한 소계와 총계를 모조리 다 구합니다.</p>
+                <div class="combo-box">
+                    <div style="color:#d97706; margin-bottom:5px;">GROUP BY CUBE(A, B)</div>
+                    1. (A, B)별 소계<br>
+                    2. (A)별 소계<br>
+                    3. <span class="combo-highlight">(B)별 소계 (ROLLUP엔 없음!)</span><br>
+                    4. <span class="combo-highlight">() ➔ 전체 총계</span>
+                </div>
+                <p style="font-size: 0.85rem; color: #64748b; margin-top: 10px;">* 컬럼이 2개면 4(2²)가지, 3개면 8(2³)가지 조합이 나옵니다. 연산량이 가장 많습니다.</p>
+            </div>
+            
+            <!-- GROUPING SETS -->
+            <div class="group-card c-sets">
+                <h3>③ GROUPING SETS <span class="badge bg-sets">지정한 만큼</span></h3>
+                <p>총계나 순차적 소계 다 필요 없고, <strong>내가 괄호 안에 지정한 컬럼의 결과만 각각 독립적으로</strong> 구해서 더해줍니다.</p>
+                <div class="combo-box">
+                    <div style="color:#059669; margin-bottom:5px;">GROUP BY GROUPING SETS(A, B)</div>
+                    1. (A)별 소계<br>
+                    2. (B)별 소계<br>
+                    <span style="color:#94a3b8; font-size:0.9rem;">(※ A,B 동시 그룹이나 전체 총계는 안 나옴!)</span>
+                </div>
+                <p style="font-size: 0.85rem; color: #64748b; margin-top: 10px;">* 평등한 관계이므로 인자의 순서가 바뀌어도 결과는 똑같습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 기출 함정: GROUPING 함수 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🕵️‍♂️';">2. 소계 빈칸 채우기: GROUPING() 함수</h2>
+        <p>ROLLUP이나 CUBE를 돌려서 '총계' 줄이 만들어지면, 해당 줄의 그룹 컬럼 부분은 빈칸(NULL)으로 표시됩니다. <strong>"원래 데이터가 NULL인 것"과 "소계/총계 때문에 만들어진 가짜 NULL"을 어떻게 구별할까요?</strong></p>
+
+        <div class="alert-box" style="border-left-color: var(--secondary); background: #f0fdfa;">
+            <h4 style="color: var(--secondary);">💡 GROUPING(컬럼명) 함수의 마법</h4>
+            <p style="margin-bottom: 0; color: #333;">이 함수는 빈칸이 <strong>소계/총계를 위해 시스템이 만들어낸 가짜 NULL이면 <span class="highlight">숫자 1</span></strong>을 반환하고, <strong>원래부터 데이터가 진짜인(또는 진짜 NULL인) 경우엔 <span class="highlight">숫자 0</span></strong>을 반환합니다.</p>
+        </div>
+
+        <h3 style="margin-top: 25px; color: var(--primary); font-size: 1.2rem;">💻 실전 활용 예시 (CASE 문과의 조합)</h3>
+        <p>실무와 시험에서 가장 많이 쓰이는 패턴입니다. 1이 나오면 '총계'라는 글자로 바꿔치기 합니다.</p>
+        
+        <div class="sql-box">
+            <span class="keyword">SELECT</span><br>
+            &nbsp;&nbsp;<span class="keyword">CASE WHEN</span> <span class="func">GROUPING</span>(부서명) = <span class="string">1</span> <span class="keyword">THEN</span> <span class="string">'전체총계'</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">ELSE</span> 부서명 <span class="keyword">END AS</span> 부서명,<br>
+            &nbsp;&nbsp;<span class="func">SUM</span>(매출액)<br>
+            <span class="keyword">FROM</span> 실적테이블<br>
+            <span class="keyword">GROUP BY ROLLUP</span>(부서명);
+        </div>
+
+        <table>
+            <tr>
+                <th width="50%">원래 출력 (GROUPING 함수 미사용)</th>
+                <th width="50%">CASE + GROUPING 함수 적용 결과</th>
+            </tr>
+            <tr>
+                <td>영업부 | 5000<br>인사부 | 3000<br><strong>(NULL) | 8000</strong></td>
+                <td>영업부 | 5000<br>인사부 | 3000<br><strong style="color: var(--accent);">전체총계 | 8000</strong></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 1초컷 암기 -->
+    <div class="memorize-box">
+        <h2>🎯 실전 시험장 1초 컷 요약표</h2>
+        <table style="margin-top: 10px; background: rgba(255,255,255,0.1); border: none; color: white;">
+            <tr style="background: rgba(0,0,0,0.3);">
+                <th style="border: 1px solid #334155; color: #facc15;">함수명</th>
+                <th style="border: 1px solid #334155; color: #facc15;">(A, B) 입력 시 생성되는 결과 덩어리 수</th>
+                <th style="border: 1px solid #334155; color: #facc15;">특징</th>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #334155; font-weight: bold;">ROLLUP</td>
+                <td style="border: 1px solid #334155;"><span style="color:#38bdf8; font-weight:bold;">3개</span> (A,B / A / 총계)</td>
+                <td style="border: 1px solid #334155; text-align: left;">인자 <strong>순서가 중요함</strong> (계층적)</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #334155; font-weight: bold;">CUBE</td>
+                <td style="border: 1px solid #334155;"><span style="color:#f59e0b; font-weight:bold;">4개</span> (A,B / A / B / 총계)</td>
+                <td style="border: 1px solid #334155; text-align: left;">모든 경우의 수. <strong>결과가 가장 많음</strong></td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #334155; font-weight: bold;">GROUPING SETS</td>
+                <td style="border: 1px solid #334155;"><span style="color:#10b981; font-weight:bold;">2개</span> (A / B)</td>
+                <td style="border: 1px solid #334155; text-align: left;">괄호 안에 지정한 것만. <strong>총계(NULL) 안 나옴</strong></td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

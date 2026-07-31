@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 실전: 윈도우 함수 예시</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #6366f1; /* Indigo */
+            --accent: #f43f5e; /* Rose */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #0ea5e9; /* Sky Blue */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #1e3a8a, #4338ca);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #c7d2fe; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; }
+        .func { color: #38bdf8; font-weight: bold; }
+        .string { color: #a7f3d0; }
+        .comment { color: #94a3b8; font-style: italic; }
+
+        /* 결과 테이블 */
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border: 2px solid var(--border);
+        }
+
+        .result-table th, .result-table td { 
+            border: 1px solid var(--border); 
+            padding: 8px; 
+            text-align: center; 
+        }
+        .result-table th { background-color: #f1f5f9; color: var(--primary); font-weight: bold; border-bottom: 2px solid #cbd5e1; }
+        
+        .tie-row1 { background-color: #fef08a; font-weight: bold; color: #b45309; }
+        .tie-row2 { background-color: #fed7aa; font-weight: bold; color: #c2410c; }
+        .jump-cell { color: var(--accent); font-weight: 900; background: #fff1f2; }
+        .dense-cell { color: var(--success); font-weight: 900; background: #ecfdf5; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .success-box h4 { margin: 0 0 10px 0; color: var(--success); display: flex; align-items: center; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🪟 실전 SQL 쿼리: 윈도우 함수 완벽 분석</h1>
+        <p>ENROL 테이블의 수강 성적(enr_grade) 데이터를 활용하여<br>동점자가 발생했을 때 순위 함수 3대장이 어떻게 다르게 동작하는지 비교합니다.</p>
+    </div>
+
+    <!-- 1. 순위 함수 3대장 비교 -->
+    <div class="section-card">
+        <h2 style="before: content: '🏆';">1. RANK vs DENSE_RANK vs ROW_NUMBER</h2>
+        <p><strong>🎓 요구사항:</strong> <code>ENROL</code> 테이블에서 수강 성적(<code>enr_grade</code>)이 <strong>높은 순(DESC)</strong>으로 순위를 매겨 조회하시오. <br>단, 각기 다른 3가지 순위 함수를 모두 사용하여 차이를 비교하시오.</p>
+
+        <div class="sql-box" style="border-left-color: var(--secondary);">
+            <span class="keyword">SELECT</span> stu_no, sub_no, enr_grade,<br>
+            &nbsp;&nbsp;<span class="func">RANK()</span> <span class="keyword">OVER</span>(<span class="keyword">ORDER BY</span> enr_grade <span class="keyword">DESC</span>) <span class="keyword">AS</span> rnk,<br>
+            &nbsp;&nbsp;<span class="func">DENSE_RANK()</span> <span class="keyword">OVER</span>(<span class="keyword">ORDER BY</span> enr_grade <span class="keyword">DESC</span>) <span class="keyword">AS</span> dense_rnk,<br>
+            &nbsp;&nbsp;<span class="func">ROW_NUMBER()</span> <span class="keyword">OVER</span>(<span class="keyword">ORDER BY</span> enr_grade <span class="keyword">DESC</span>) <span class="keyword">AS</span> row_num<br>
+            <span class="keyword">FROM</span> enrol;
+        </div>
+
+        <h4 style="margin-top: 25px; color: var(--primary);">📊 쿼리 실행 결과 (동점자 처리에 주목!)</h4>
+        <table class="result-table">
+            <tr>
+                <th>STU_NO</th><th>SUB_NO</th><th>ENR_GRADE</th>
+                <th>RANK()</th><th>DENSE_RANK()</th><th>ROW_NUMBER()</th>
+            </tr>
+            <tr><td>20151062</td><td>108</td><td>81</td><td>1</td><td>1</td><td>1</td></tr>
+            <tr><td>20131001</td><td>101</td><td>80</td><td>2</td><td>2</td><td>2</td></tr>
+            <tr><td>20153088</td><td>105</td><td>78</td><td>3</td><td>3</td><td>3</td></tr>
+            <tr><td>20132003</td><td>106</td><td>72</td><td>4</td><td>4</td><td>4</td></tr>
+            <tr><td>20153075</td><td>102</td><td>66</td><td>5</td><td>5</td><td>5</td></tr>
+            
+            <!-- 첫 번째 동점자 그룹 -->
+            <tr class="tie-row1"><td>20131025</td><td>101</td><td>65</td><td>6</td><td>6</td><td>6</td></tr>
+            <tr class="tie-row1"><td>20131025</td><td>104</td><td>65</td><td>6</td><td>6</td><td>7</td></tr>
+            
+            <!-- 동점자 이후 점수 -->
+            <tr><td>20153088</td><td>102</td><td>61</td><td class="jump-cell">8 (건너뜀)</td><td class="dense-cell">7 (빽빽함)</td><td>8</td></tr>
+            
+            <!-- 두 번째 동점자 그룹 -->
+            <tr class="tie-row2"><td>20131001</td><td>104</td><td>56</td><td>9</td><td>8</td><td>9</td></tr>
+            <tr class="tie-row2"><td>20153075</td><td>105</td><td>56</td><td>9</td><td>8</td><td>10</td></tr>
+            
+            <!-- 동점자 이후 점수 -->
+            <tr><td>20152088</td><td>103</td><td>45</td><td class="jump-cell">11 (건너뜀)</td><td class="dense-cell">9 (빽빽함)</td><td>11</td></tr>
+            <tr><td>20143054</td><td>107</td><td>41</td><td>12</td><td>10</td><td>12</td></tr>
+        </table>
+        
+        <div class="success-box" style="margin-top: 15px;">
+            <h4 style="color: var(--success);">💡 결과 완벽 해설</h4>
+            <ul style="margin: 0; padding-left: 20px; font-size: 0.95rem;">
+                <li><strong>RANK:</strong> 65점 동점자가 2명 나오자 공동 6등으로 처리하고, <span style="color: var(--accent); font-weight: bold;">7등을 건너뛴 뒤 바로 8등</span>으로 넘어갔습니다.</li>
+                <li><strong>DENSE_RANK:</strong> 공동 6등 다음 순위를 <span style="color: var(--success); font-weight: bold;">건너뛰지 않고 7등</span>으로 빽빽하게 채웠습니다.</li>
+                <li><strong>ROW_NUMBER:</strong> 동점자든 뭐든 상관없이 그냥 데이터베이스가 읽은 순서대로 고유한 일련번호(6, 7)를 냅다 부여했습니다.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 2. PARTITION BY의 마법 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🧱';">2. 그룹 안에서 순위 매기기 (PARTITION BY)</h2>
+        <p><strong>🎓 요구사항:</strong> <code>STUDENT</code> 테이블에서 <strong>'각 학과(stu_dept)별로'</strong> 키(stu_height)가 큰 순서대로 등수를 매기시오. (키가 NULL인 학생은 제외)</p>
+
+        <div class="sql-box" style="border-left-color: var(--info);">
+            <span class="keyword">SELECT</span> stu_dept, stu_name, stu_height,<br>
+            &nbsp;&nbsp;<span class="func">RANK()</span> <span class="keyword">OVER</span>(<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">PARTITION BY</span> stu_dept &nbsp;&nbsp;<span class="comment">-- 학과 단위로 파티션(벽)을 친다</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">ORDER BY</span> stu_height <span class="keyword">DESC</span><br>
+            &nbsp;&nbsp;) <span class="keyword">AS</span> dept_height_rnk<br>
+            <span class="keyword">FROM</span> student<br>
+            <span class="keyword">WHERE</span> stu_height <span class="keyword">IS NOT NULL</span>;
+        </div>
+
+        <h4 style="margin-top: 25px; color: var(--primary);">📊 쿼리 실행 결과 (행 수는 유지됨)</h4>
+        <table class="result-table">
+            <tr><th>STU_DEPT (파티션)</th><th>STU_NAME</th><th>STU_HEIGHT</th><th>DEPT_HEIGHT_RNK</th></tr>
+            <tr style="background: #f1f5f9;"><td rowspan="3" style="font-weight: bold;">기계</td><td>옥한빛</td><td>177</td><td>1</td></tr>
+            <tr style="background: #f1f5f9;"><td>이태연</td><td>162</td><td>2</td></tr>
+            <tr style="background: #f1f5f9;"><td>유가인</td><td>154</td><td>3</td></tr>
+            
+            <tr><td rowspan="2" style="font-weight: bold;">전기전자</td><td>조민우</td><td>188</td><td style="color: var(--accent); font-weight: bold;">1 (초기화)</td></tr>
+            <tr><td>심수정</td><td>168</td><td>2</td></tr>
+            
+            <tr style="background: #f1f5f9;"><td rowspan="3" style="font-weight: bold;">컴퓨터정보</td><td>진현무</td><td>174</td><td style="color: var(--accent); font-weight: bold;">1 (초기화)</td></tr>
+            <tr style="background: #f1f5f9;"><td>옥성우</td><td>172</td><td>2</td></tr>
+            <tr style="background: #f1f5f9;"><td>김인중</td><td>166</td><td>3</td></tr>
+        </table>
+
+        <div class="alert-box">
+            <h4>🚨 기출 핵심 포인트</h4>
+            <p style="margin-bottom: 0;"><code>GROUP BY</code>를 썼다면 기계과 1줄, 전기전자 1줄, 컴퓨터정보 1줄로 총 3줄로 데이터가 쪼그라들었을 것입니다. 하지만 윈도우 함수의 <strong><code>PARTITION BY</code>는 원본 행(8줄)을 하나도 삭제하지 않고</strong>, 단지 순위를 계산할 때만 칸막이(벽) 역할을 하여 1등을 새롭게 초기화해 줍니다.</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

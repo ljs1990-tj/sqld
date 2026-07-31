@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 실전: 집합 연산자 예시</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0ea5e9; /* Sky blue */
+            --accent: #ef4444; /* Red */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --purple: #8b5cf6;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #0f172a, #0369a1);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #bae6fd; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; }
+        .operator { color: #fde047; font-weight: bold; font-size: 1.2rem; }
+        .string { color: #a7f3d0; }
+        .comment { color: #94a3b8; font-style: italic; }
+
+        /* 결과 테이블 */
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border: 2px solid var(--border);
+        }
+
+        .result-table th, .result-table td { 
+            border: 1px solid var(--border); 
+            padding: 8px 10px; 
+            text-align: center; 
+        }
+        .result-table th { background-color: #f1f5f9; color: var(--primary); font-weight: bold; }
+        .highlight-row { background-color: #fef08a; font-weight: bold; color: #b45309; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .success-box h4 { margin: 0 0 10px 0; color: var(--success); display: flex; align-items: center; }
+
+        /* 탭 구조 스타일 */
+        .tab-container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .tab-box {
+            flex: 1;
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .tab-box h4 { margin-top: 0; border-bottom: 1px dashed #cbd5e1; padding-bottom: 10px; }
+        
+        @media (max-width: 768px) {
+            .tab-container { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>➕ 실전 SQL 쿼리: 집합 연산자 완벽 분석</h1>
+        <p>1학년 학생 집합(4명)과 기계과 학생 집합(3명)을 위아래로 이어 붙일 때<br>연산자에 따라 결과가 어떻게 달라지는지 눈으로 확인해 봅니다.</p>
+    </div>
+
+    <!-- 0. 원본 데이터 세팅 -->
+    <div class="section-card" style="background: #f1f5f9; border: 1px dashed #cbd5e1;">
+        <h2 style="before: content: '📋'; border-bottom: none; margin-bottom: 0;">0. 연산에 사용할 2개의 원본 집합</h2>
+        <div class="tab-container" style="margin-top: 10px;">
+            <div class="tab-box" style="background: white;">
+                <h4 style="color: var(--secondary);">[집합 A] 1학년 학생</h4>
+                <div class="sql-box" style="margin: 10px 0; font-size: 0.85rem; padding: 10px;">
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_grade = 1;
+                </div>
+                <table class="result-table">
+                    <tr><th>STU_NAME</th><th>STU_DEPT</th></tr>
+                    <tr class="highlight-row"><td>옥한빛</td><td>기계</td></tr>
+                    <tr class="highlight-row"><td>이태연</td><td>기계</td></tr>
+                    <tr><td>조민우</td><td>전기전자</td></tr>
+                    <tr><td>김인중</td><td>컴퓨터정보</td></tr>
+                </table>
+                <p style="text-align: center; margin: 5px 0 0 0; font-weight: bold; color: var(--secondary);">총 4건</p>
+            </div>
+            <div class="tab-box" style="background: white;">
+                <h4 style="color: var(--success);">[집합 B] 기계과 학생</h4>
+                <div class="sql-box" style="margin: 10px 0; font-size: 0.85rem; padding: 10px;">
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_dept = <span class="string">'기계'</span>;
+                </div>
+                <table class="result-table">
+                    <tr><th>STU_NAME</th><th>STU_DEPT</th></tr>
+                    <tr class="highlight-row"><td>옥한빛</td><td>기계</td></tr>
+                    <tr class="highlight-row"><td>이태연</td><td>기계</td></tr>
+                    <tr><td>유가인</td><td>기계</td></tr>
+                </table>
+                <p style="text-align: center; margin: 5px 0 0 0; font-weight: bold; color: var(--success);">총 3건</p>
+            </div>
+        </div>
+        <p style="text-align: center; color: #475569; margin-top: 15px;">※ 주의 깊게 볼 점: <strong>'옥한빛', '이태연'</strong>은 1학년이면서 기계과이므로 <strong>양쪽 집합에 모두 존재(교집합)</strong>합니다!</p>
+    </div>
+
+    <!-- 1. UNION vs UNION ALL -->
+    <div class="section-card">
+        <h2 style="before: content: '⚔️';">1. UNION vs UNION ALL 비교</h2>
+        <p>위의 [집합 A]와 [집합 B]를 이어 붙여 보겠습니다.</p>
+
+        <div class="tab-container">
+            <!-- UNION ALL -->
+            <div class="tab-box">
+                <h4 style="color: var(--success);">결과 1: UNION ALL (단순 합집합)</h4>
+                <div class="sql-box" style="margin: 10px 0; font-size: 0.85rem; border-left-color: var(--success);">
+                    <span class="comment">-- 1학년 + 기계과</span><br>
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_grade = 1<br>
+                    <span class="operator">UNION ALL</span><br>
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_dept = <span class="string">'기계'</span>;
+                </div>
+                <table class="result-table">
+                    <tr><th>STU_NAME</th><th>STU_DEPT</th></tr>
+                    <tr class="highlight-row"><td>옥한빛</td><td>기계</td></tr>
+                    <tr class="highlight-row"><td>이태연</td><td>기계</td></tr>
+                    <tr><td>조민우</td><td>전기전자</td></tr>
+                    <tr><td>김인중</td><td>컴퓨터정보</td></tr>
+                    <tr class="highlight-row"><td>옥한빛</td><td>기계</td></tr>
+                    <tr class="highlight-row"><td>이태연</td><td>기계</td></tr>
+                    <tr><td>유가인</td><td>기계</td></tr>
+                </table>
+                <p style="text-align: center; font-weight: bold; color: var(--success);">결과: 7건 (4건 + 3건)</p>
+                <p style="font-size: 0.85rem; color: #64748b;">중복 확인 따위 하지 않고 무식하게 냅다 붙입니다. (가장 빠름)</p>
+            </div>
+
+            <!-- UNION -->
+            <div class="tab-box">
+                <h4 style="color: var(--warning);">결과 2: UNION (중복 제거)</h4>
+                <div class="sql-box" style="margin: 10px 0; font-size: 0.85rem; border-left-color: var(--warning);">
+                    <span class="comment">-- 1학년 + 기계과 (중복제거)</span><br>
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_grade = 1<br>
+                    <span class="operator" style="color: var(--warning);">UNION</span><br>
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_dept = <span class="string">'기계'</span>;
+                </div>
+                <table class="result-table">
+                    <tr><th>STU_NAME</th><th>STU_DEPT</th></tr>
+                    <tr><td>김인중</td><td>컴퓨터정보</td></tr>
+                    <tr class="highlight-row"><td>옥한빛</td><td>기계</td></tr>
+                    <tr><td>유가인</td><td>기계</td></tr>
+                    <tr class="highlight-row"><td>이태연</td><td>기계</td></tr>
+                    <tr><td>조민우</td><td>전기전자</td></tr>
+                </table>
+                <p style="text-align: center; font-weight: bold; color: var(--warning);">결과: 5건 (7건 - 중복 2건)</p>
+                <p style="font-size: 0.85rem; color: #64748b;">중복된 옥한빛, 이태연을 하나씩 지우고 <strong style="color:var(--accent)">전체를 오름차순 정렬(Sort)</strong> 해버립니다. (느려짐)</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. INTERSECT & MINUS -->
+    <div class="section-card">
+        <h2 style="before: content: '🎯';">2. INTERSECT(교집합)와 MINUS(차집합)</h2>
+
+        <div class="tab-container">
+            <div class="tab-box" style="border-top: 4px solid var(--purple);">
+                <h4 style="color: var(--purple);">INTERSECT (양쪽에 다 있는 것)</h4>
+                <div class="sql-box" style="margin: 10px 0; font-size: 0.85rem; border-left-color: var(--purple);">
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_grade = 1<br>
+                    <span class="operator" style="color: #c084fc;">INTERSECT</span><br>
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_dept = <span class="string">'기계'</span>;
+                </div>
+                <table class="result-table">
+                    <tr><th>STU_NAME</th><th>STU_DEPT</th></tr>
+                    <tr class="highlight-row"><td>옥한빛</td><td>기계</td></tr>
+                    <tr class="highlight-row"><td>이태연</td><td>기계</td></tr>
+                </table>
+                <p style="text-align: center; font-weight: bold; color: var(--purple);">결과: 2건</p>
+                <p style="font-size: 0.85rem; color: #64748b;">1학년이면서 동시에 기계과인 학생만 남습니다.</p>
+            </div>
+
+            <div class="tab-box" style="border-top: 4px solid var(--accent);">
+                <h4 style="color: var(--accent);">MINUS (앞집합 - 뒷집합)</h4>
+                <div class="sql-box" style="margin: 10px 0; font-size: 0.85rem; border-left-color: var(--accent);">
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_grade = 1<br>
+                    <span class="operator" style="color: #fca5a5;">MINUS</span><br>
+                    <span class="keyword">SELECT</span> stu_name, stu_dept <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_dept = <span class="string">'기계'</span>;
+                </div>
+                <table class="result-table">
+                    <tr><th>STU_NAME</th><th>STU_DEPT</th></tr>
+                    <tr><td>김인중</td><td>컴퓨터정보</td></tr>
+                    <tr><td>조민우</td><td>전기전자</td></tr>
+                </table>
+                <p style="text-align: center; font-weight: bold; color: var(--accent);">결과: 2건</p>
+                <p style="font-size: 0.85rem; color: #64748b;">1학년(4명) 중에서 기계과(2명)를 뺀, 나머지 1학년(전기전자, 컴퓨터정보)만 남습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 기출 0순위 에러 패턴 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '💣';">3. 기출 단골: 쿼리 문법 에러 찾기</h2>
+        <p>다음 쿼리들은 SQLD 시험에서 보기로 자주 등장하는 <strong>실행 불가(에러)</strong> 쿼리들입니다.</p>
+
+        <div class="alert-box">
+            <h4>❌ 에러 원인 1: 컬럼의 개수나 타입이 다름</h4>
+            <div class="sql-box" style="border-left-color: var(--accent); margin: 10px 0;">
+                <span class="keyword">SELECT</span> stu_no, stu_name <span class="keyword">FROM</span> student &nbsp;&nbsp;<span class="comment">-- 컬럼 2개 (문자, 문자)</span><br>
+                <span class="operator">UNION</span><br>
+                <span class="keyword">SELECT</span> sub_no, sub_grade <span class="keyword">FROM</span> subject &nbsp;&nbsp;&nbsp;<span class="comment">-- 컬럼 2개 (문자, 숫자)</span>
+            </div>
+            <p style="margin-bottom: 0;">➔ 개수는 2개로 같지만, 위쪽 두 번째 컬럼(stu_name)은 문자형인데 아래쪽 두 번째 컬럼(sub_grade)은 숫자형이라서 에러가 납니다.</p>
+        </div>
+
+        <div class="alert-box">
+            <h4>❌ 에러 원인 2: ORDER BY의 위치 잘못됨</h4>
+            <div class="sql-box" style="border-left-color: var(--accent); margin: 10px 0;">
+                <span class="keyword">SELECT</span> stu_name <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_grade = 1 <strong style="color: #ef4444; text-decoration: underline;">ORDER BY stu_name</strong><br>
+                <span class="operator">UNION ALL</span><br>
+                <span class="keyword">SELECT</span> stu_name <span class="keyword">FROM</span> student <span class="keyword">WHERE</span> stu_dept = <span class="string">'기계'</span>;
+            </div>
+            <p style="margin-bottom: 0;">➔ <code>ORDER BY</code>는 무조건 덩어리를 다 합치고 난 <strong>가장 마지막에 딱 한 번만</strong> 적어야 합니다. 첫 번째 SELECT 문에 넣으면 에러가 납니다!</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

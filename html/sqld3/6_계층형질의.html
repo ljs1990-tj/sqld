@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 심화: 계층형 질의 & Top N 쿼리</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #16a34a; /* Green for Tree */
+            --accent: #e11d48; /* Rose */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #0284c7; /* Light Blue */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #064e3b, #15803d);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #bbf7d0; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.65rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        h2::before { margin-right: 12px; font-size: 1.5rem; }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; } /* Pink */
+        .func { color: #38bdf8; font-weight: bold; } /* Blue */
+        .string { color: #a7f3d0; } /* Light Green */
+        .comment { color: #94a3b8; font-style: italic; }
+        .highlight-word { color: #fde047; font-weight: bold; }
+
+        /* 트리 구조 시각화 */
+        .tree-box {
+            background: #f0fdf4;
+            border: 2px dashed #86efac;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #166534;
+            margin: 20px 0;
+            line-height: 1.8;
+        }
+        
+        .level-1 { margin-left: 0; color: #b91c1c; }
+        .level-2 { margin-left: 20px; color: #c2410c; }
+        .level-3 { margin-left: 40px; color: #1d4ed8; }
+
+        /* 비교 테이블 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        th, td { border: 1px solid var(--border); padding: 12px 15px; text-align: left; line-height: 1.6; }
+        th { background-color: #f1f5f9; color: var(--primary); text-align: center; }
+        .center { text-align: center; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .success-box h4 { margin: 0 0 10px 0; color: var(--success); display: flex; align-items: center; }
+
+        /* 1초 암기 박스 */
+        .memorize-box {
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+            margin-top: 40px;
+        }
+        
+        .memorize-box h2 { border: none; justify-content: center; color: #facc15; padding-bottom: 0; margin-bottom: 15px; }
+
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fef08a 40%); font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🌳 SQLD 2과목 심화: 계층형 질의 & Top N 쿼리</h1>
+        <p>꼬리에 꼬리를 무는 조직도 데이터를 한방에 조회하는 오라클의 꽃, 계층형 쿼리!<br>그리고 실행 순서의 함정을 파놓은 ROWNUM 쿼리를 파헤칩니다.</p>
+    </div>
+
+    <!-- 1. 계층형 질의 기본 (오라클) -->
+    <div class="section-card">
+        <h2 style="before: content: '🏢';">1. 계층형 질의의 핵심 구조 (Oracle)</h2>
+        <p>계층형 질의(Hierarchical Query)는 자기 자신을 참조하는 테이블(예: 사원테이블에 '사원번호'와 '매니저번호'가 같이 있는 경우)에서 트리 구조를 뽑아낼 때 사용합니다.</p>
+
+        <div class="sql-box">
+            <span class="keyword">SELECT</span> LEVEL, 사원명, 매니저번호<br>
+            <span class="keyword">FROM</span> 사원테이블<br>
+            <span class="highlight-word">START WITH</span> 매니저번호 <span class="keyword">IS NULL</span>  <span class="comment">-- 1. 뿌리(Root)를 찾는다! (보통 사장님)</span><br>
+            <span class="highlight-word">CONNECT BY PRIOR</span> 사원번호 = 매니저번호; <span class="comment">-- 2. 뿌리와 가지를 어떻게 연결할지 정한다!</span>
+        </div>
+
+        <div class="tree-box">
+            <div class="level-1">LEVEL 1 : 👑 사장 (Root)</div>
+            <div class="level-2">↪ LEVEL 2 : 💼 영업부장</div>
+            <div class="level-3">  ↪ LEVEL 3 : 🧑‍💼 영업1팀 사원</div>
+            <div class="level-3">  ↪ LEVEL 3 : 🧑‍💼 영업2팀 사원</div>
+            <div class="level-2">↪ LEVEL 2 : 💼 개발부장</div>
+            <div class="level-3">  ↪ LEVEL 3 : 🧑‍💻 개발팀 사원</div>
+        </div>
+
+        <table>
+            <tr>
+                <th width="30%">핵심 키워드</th>
+                <th width="70%">의미 (기출 필수 암기)</th>
+            </tr>
+            <tr>
+                <td class="center"><strong>START WITH</strong></td>
+                <td>트리의 시작점(Root 노드)을 지정합니다. (이 조건을 만족하는 행이 LEVEL 1이 됩니다.)</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>CONNECT BY</strong></td>
+                <td>부모 노드와 자식 노드를 어떻게 연결할 것인지 규칙을 정합니다.</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>LEVEL (가상 컬럼)</strong></td>
+                <td>루트 데이터면 1, 그 하위 데이터면 2, 3... 식으로 계층의 깊이를 나타냅니다.</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>ORDER SIBLINGS BY</strong></td>
+                <td>전체 정렬이 아니라, <strong>같은 레벨(형제 노드)끼리만</strong> 예쁘게 정렬할 때 사용합니다.</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 2. 기출 0순위: 순방향 vs 역방향 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔄';">2. 기출 0순위: 전개 방향 맞추기</h2>
+        <p>시험에서는 <code>PRIOR</code> 키워드의 위치를 보고 이 트리가 위에서 아래로(순방향) 가는지, 아래서 위로(역방향) 가는지 묻는 문제가 단골로 나옵니다.</p>
+
+        <div class="success-box" style="border-left-color: var(--secondary); background: #f0fdf4;">
+            <h4 style="color: var(--secondary);">⬇️ 순방향 전개 (Top-Down)</h4>
+            <p style="margin-bottom: 5px;"><code>CONNECT BY <strong style="color:#ef4444;">PRIOR 자식컬럼(PK) = 부모컬럼(FK)</strong></code></p>
+            <p style="margin-top: 0; font-size: 0.95rem; color: #475569;">➔ 해석: "이전(PRIOR) 사원번호(나)가 매니저번호(부모)인 사람을 찾아라!" = <strong>내 밑에 있는 부하직원들을 찾아 내려감 (사장 ➔ 사원)</strong></p>
+        </div>
+
+        <div class="alert-box">
+            <h4 style="color: var(--accent);">⬆️ 역방향 전개 (Bottom-Up)</h4>
+            <p style="margin-bottom: 5px;"><code>CONNECT BY <strong style="color:#ef4444;">PRIOR 부모컬럼(FK) = 자식컬럼(PK)</strong></code></p>
+            <p style="margin-top: 0; font-size: 0.95rem; color: #475569;">➔ 해석: "이전(PRIOR) 매니저번호(내 상사)가 사원번호(PK)인 사람을 찾아라!" = <strong>나를 관리하는 상사를 찾아 올라감 (사원 ➔ 사장)</strong></p>
+        </div>
+        <p style="text-align: center; font-size: 0.9rem; color: #64748b; margin-top: -10px;">💡 암기 팁: <strong>"프.자.부.순" (PRIOR 쪽이 자식 = 부모, 이면 순방향)</strong></p>
+    </div>
+
+    <!-- 3. Top N 쿼리와 ROWNUM의 함정 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🏆';">3. Top N 쿼리와 ROWNUM의 치명적 함정</h2>
+        <p><strong>🎓 요구사항:</strong> <code>STUDENT</code> 테이블에서 <strong>키(stu_height)가 가장 큰 Top 3 학생</strong>을 조회하시오.</p>
+
+        <div class="alert-box" style="border-left-color: var(--warning); background: #fffbeb;">
+            <h4 style="color: var(--warning);">❌ 초보자의 실수 (실행 순서의 함정)</h4>
+            <div class="sql-box" style="margin: 10px 0; border-left-color: var(--warning);">
+                <span class="keyword">SELECT</span> stu_name, stu_height<br>
+                <span class="keyword">FROM</span> student<br>
+                <span class="keyword">WHERE ROWNUM</span> &lt;= 3 &nbsp;&nbsp;<span class="comment">-- 여기서 아무나 3명을 먼저 짤라버림!</span><br>
+                <span class="keyword">ORDER BY</span> stu_height <span class="keyword">DESC</span>;
+            </div>
+            <p style="margin-bottom: 0; font-size: 0.95rem; color: #333;"><strong>이유:</strong> SQL의 실행 순서는 <code>WHERE</code> ➔ <code>ORDER BY</code> 입니다. 정렬도 하기 전에 ROWNUM이 먼저 작동해서 무작위로 3명을 뽑아버린 뒤에야 그 3명 안에서만 정렬을 해버립니다. (가장 키 큰 3명이 아닙니다!)</p>
+        </div>
+
+        <div class="success-box">
+            <h4 style="color: var(--success);">✅ 올바른 작성법 (인라인 뷰 서브쿼리 사용)</h4>
+            <p>안쪽 괄호(인라인 뷰)에서 먼저 <strong>완벽하게 정렬을 끝내 놓은 가상 테이블</strong>을 만든 뒤, 바깥쪽에서 잘라야 합니다.</p>
+            <div class="sql-box" style="margin: 10px 0; border-left-color: var(--success);">
+                <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> ( &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">-- 2. 밖에서 ROWNUM으로 3건만 자른다.</span><br>
+                &nbsp;&nbsp;<span class="keyword">SELECT</span> stu_name, stu_height <br>
+                &nbsp;&nbsp;<span class="keyword">FROM</span> student <br>
+                &nbsp;&nbsp;<span class="keyword">WHERE</span> stu_height <span class="keyword">IS NOT NULL</span> <br>
+                &nbsp;&nbsp;<span class="keyword">ORDER BY</span> stu_height <span class="keyword">DESC</span> &nbsp;<span class="comment">-- 1. 안에서 완벽하게 정렬을 끝낸다!</span><br>
+                )<br>
+                <span class="keyword">WHERE ROWNUM</span> &lt;= 3;
+            </div>
+            
+            <table style="width: auto; margin-top: 15px; margin-left: 20px;">
+                <tr><th class="center">STU_NAME</th><th class="center">STU_HEIGHT</th></tr>
+                <tr><td class="center">조민우</td><td class="center">188</td></tr>
+                <tr><td class="center">옥한빛</td><td class="center">177</td></tr>
+                <tr><td class="center">진현무</td><td class="center">174</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- 1초컷 암기 -->
+    <div class="memorize-box">
+        <h2>🎯 실전 시험장 1초 컷 요약</h2>
+        <ul style="text-align: left; max-width: 650px; margin: 0 auto; font-size: 1.15rem; line-height: 1.8; color: #f8fafc; list-style: none; padding: 0;">
+            <li>✅ <code>START WITH</code> 절은 데이터 필터링이 아니라, <span style="color:#facc15;">트리의 시작 위치(Root)</span>를 결정하는 절이다.</li>
+            <li>✅ <code>PRIOR 자식 = 부모</code> 형태면 부모에서 자식으로 내려가는 <span style="color:#38bdf8;">순방향 전개</span>다.</li>
+            <li>✅ 오라클에서 정렬된 상위 N건(Top-N)을 뽑으려면 <span style="color:#facc15;">반드시 인라인 뷰 안에 ORDER BY</span>를 먼저 써야 한다.</li>
+            <li>✅ SQL Server(MSSQL)는 인라인 뷰 없이 그냥 <code>SELECT <span style="color:#38bdf8;">TOP(3)</span> 이름 FROM 학생 ORDER BY 키</code> 로 쓴다.</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>

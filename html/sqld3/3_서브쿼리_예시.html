@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 실전: 서브쿼리 예시</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #8b5cf6; /* Purple */
+            --accent: #e11d48; /* Rose */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #0284c7; /* Light Blue */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #2e1065, #4c1d95);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #ddd6fe; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; }
+        .string { color: #a7f3d0; }
+        .subq { color: #fde047; font-weight: bold; } /* Yellow */
+        .comment { color: #94a3b8; font-style: italic; }
+
+        /* 결과 테이블 */
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border: 2px solid var(--border);
+        }
+
+        .result-table th, .result-table td { 
+            border: 1px solid var(--border); 
+            padding: 10px; 
+            text-align: center; 
+        }
+        .result-table th { background-color: #f1f5f9; color: var(--primary); font-weight: bold; }
+        .highlight-cell { font-weight: bold; color: var(--secondary); background: #f3e8ff; }
+
+        /* 기출 함정 박스 */
+        .alert-box {
+            background: #fef2f2;
+            border-left: 5px solid var(--accent);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .success-box {
+            background: #f0fdf4;
+            border-left: 5px solid var(--success);
+            padding: 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+        }
+        .success-box h4 { margin: 0 0 10px 0; color: var(--success); display: flex; align-items: center; }
+
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fef08a 40%); font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🕵️‍♂️ 실전 SQL 쿼리: 서브쿼리 완벽 분석</h1>
+        <p>어느 절에 들어갔느냐에 따른 명칭(스칼라, 인라인 뷰, 중첩)과<br>결과 건수에 따른 연산자(단일행 vs 다중행)의 차이를 눈으로 확인합니다.</p>
+    </div>
+
+    <!-- 1. 스칼라 서브쿼리 -->
+    <div class="section-card">
+        <h2 style="before: content: '📍';">1. SELECT 절: 스칼라 서브쿼리</h2>
+        <p><strong>🎓 요구사항:</strong> 각 학생의 이름, 키, 그리고 <strong>'전체 학생의 평균 키'</strong>를 하나의 표에 나란히 출력하시오. (단, 키가 입력된 학생만 조회)</p>
+
+        <div class="sql-box" style="border-left-color: var(--success);">
+            <span class="keyword">SELECT</span> stu_name, stu_height,<br>
+            &nbsp;&nbsp;<span class="subq">(SELECT ROUND(AVG(stu_height), 1) FROM student)</span> <span class="keyword">AS</span> avg_height<br>
+            <span class="keyword">FROM</span> student<br>
+            <span class="keyword">WHERE</span> stu_height <span class="keyword">IS NOT NULL</span>;
+        </div>
+
+        <h4 style="margin-top: 25px;">📊 쿼리 실행 결과</h4>
+        <table class="result-table">
+            <tr><th>STU_NAME</th><th>STU_HEIGHT</th><th>AVG_HEIGHT (스칼라 서브쿼리)</th></tr>
+            <tr><td>옥한빛</td><td>177</td><td class="highlight-cell" rowspan="4" style="vertical-align: middle;">170.1</td></tr>
+            <tr><td>이태연</td><td>162</td></tr>
+            <tr><td>유가인</td><td>154</td></tr>
+            <tr><td>조민우</td><td>188</td></tr>
+        </table>
+        <p style="font-size: 0.9rem; color: #64748b; text-align: center;">➔ 메인 쿼리의 행(Row)마다 서브쿼리의 단일 결과(170.1)가 하나의 컬럼(칸)처럼 딱 맞춰 출력됩니다.</p>
+    </div>
+
+    <!-- 2. 다중행 서브쿼리 (IN) -->
+    <div class="section-card">
+        <h2 style="before: content: '🔥';">2. WHERE 절: 다중행 연산자 (IN)</h2>
+        <p><strong>🎓 요구사항:</strong> '컴퓨터개론(과목코드: 101)'을 <strong>수강 신청한 학생들의 이름</strong>을 조회하시오.</p>
+
+        <div class="sql-box" style="border-left-color: var(--warning);">
+            <span class="keyword">SELECT</span> stu_name, stu_dept<br>
+            <span class="keyword">FROM</span> student<br>
+            <span class="keyword">WHERE</span> stu_no <span class="keyword">IN</span> <span class="subq">(SELECT stu_no FROM enrol WHERE sub_no = '101')</span>;
+        </div>
+
+        <h4 style="margin-top: 25px;">📊 쿼리 실행 흐름</h4>
+        <div style="background: #fffbeb; padding: 15px; border-radius: 8px; font-size: 0.95rem; border: 1px solid #fde68a;">
+            <strong>Step 1 (서브쿼리 먼저 실행):</strong> 101번 과목을 수강한 학번 리스트를 뽑아냅니다.<br>
+            ➔ 결과: <span class="highlight">('20131001', '20131025')</span> <br><br>
+            <strong>Step 2 (메인쿼리 실행):</strong> 학생 테이블에서 위 두 학번에 해당하는 학생을 찾습니다.<br>
+            ➔ 결과: <strong>김종헌, 옥성우</strong>
+        </div>
+
+        <div class="alert-box">
+            <h4>🚨 단골 오답 패턴 (반드시 기억하세요!)</h4>
+            <div class="sql-box" style="border-left-color: var(--accent); margin: 10px 0;">
+                <span class="keyword">WHERE</span> stu_no <strong style="color: #ef4444; text-decoration: underline;">=</strong> <span class="subq">(SELECT stu_no FROM enrol WHERE sub_no = '101')</span>;
+            </div>
+            <p style="margin-bottom: 0;">서브쿼리의 결과가 2건('20131001', '20131025')이 나왔는데, 단일행 비교 연산자인 <strong><code>=</code></strong> 를 사용했기 때문에 <strong>즉시 ORA-01427 에러가 발생하며 쿼리가 실패</strong>합니다.</p>
+        </div>
+    </div>
+
+    <!-- 3. 연관 서브쿼리 (EXISTS) -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🔁';">3. EXISTS를 활용한 연관 서브쿼리</h2>
+        <p><strong>🎓 요구사항:</strong> 어떤 과목이든 상관없이 <strong>'수강신청을 1건이라도 한 적이 있는'</strong> 학생들의 이름을 조회하시오.</p>
+
+        <div class="sql-box" style="border-left-color: var(--info);">
+            <span class="keyword">SELECT</span> A.stu_name<br>
+            <span class="keyword">FROM</span> student A<br>
+            <span class="keyword">WHERE EXISTS</span> <br>
+            &nbsp;&nbsp;<span class="subq">(SELECT 1 FROM enrol B WHERE A.stu_no = B.stu_no)</span>;
+        </div>
+
+        <h4 style="margin-top: 25px;">📊 쿼리 실행 결과 (수강 내역이 없는 학생 제외)</h4>
+        <table class="result-table">
+            <tr><th>STU_NAME</th><th>비고 (수강신청 여부)</th></tr>
+            <tr><td>옥한빛</td><td>수강함 (102, 105)</td></tr>
+            <tr><td>이태연</td><td>수강함 (102, 105)</td></tr>
+            <tr><td colspan="2" style="color: #94a3b8; font-style: italic;">... (중략) ...</td></tr>
+            <tr><td colspan="2" style="background-color: #fee2e2; color: #b91c1c; font-weight: bold; text-decoration: line-through;">심수정 (제외)</td></tr>
+            <tr><td colspan="2" style="background-color: #fee2e2; color: #b91c1c; font-weight: bold; text-decoration: line-through;">진현무 (제외)</td></tr>
+        </table>
+
+        <div class="success-box">
+            <h4>💡 EXISTS의 작동 원리</h4>
+            <p style="margin-bottom: 0;">메인 쿼리(학생 A)에서 학생을 한 명씩 꺼내어 서브쿼리로 던집니다. <code>ENROL</code> 테이블을 뒤지다가 해당 학생의 학번(A.stu_no)이 <strong>단 1줄이라도 발견되면 즉시 탐색을 멈추고 TRUE를 반환</strong>합니다. 수강 내역이 아예 없는 심수정, 진현무는 FALSE가 되어 결과에서 빠집니다.</p>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
