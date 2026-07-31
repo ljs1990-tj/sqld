@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 실전 모의고사 (신유형 종합 - 해설형)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --important: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --correct-bg: #e8f8f5;
+            --correct-border: #2ecc71;
+            --box-bg: #fdfefe;
+            --box-border: #bdc3c7;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .header h1 {
+            color: var(--primary);
+            margin: 0 0 10px 0;
+            font-size: 2.2rem;
+        }
+
+        .header p { color: #7f8c8d; font-size: 1.1rem; }
+
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #e0e6ed;
+            position: relative;
+        }
+
+        .is-important {
+            border: 2px solid var(--important);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.15);
+        }
+
+        .badge-important {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background-color: var(--important);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+        }
+
+        .q-number {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: var(--accent);
+            margin-right: 10px;
+        }
+
+        .q-text {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        /* 보기 박스 스타일 */
+        .q-box {
+            background-color: var(--box-bg);
+            border: 2px dashed var(--box-border);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            color: #2c3e50;
+        }
+
+        .options {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px 0;
+        }
+
+        .options li {
+            background-color: #f8f9fa;
+            border: 1px solid #ecf0f1;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+        }
+        
+        /* 정답 확인 토글 영역 */
+        details {
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #d5dbdb;
+            margin-top: 15px;
+        }
+
+        summary {
+            padding: 15px;
+            font-weight: bold;
+            color: var(--primary);
+            cursor: pointer;
+            outline: none;
+            list-style: none; 
+        }
+        
+        summary::-webkit-details-marker { display: none; }
+        summary::before {
+            content: "👉 해설 보기";
+            margin-right: 10px;
+        }
+        details[open] summary::before { content: "👇 해설 닫기"; }
+
+        .answer-box {
+            padding: 20px;
+            background-color: var(--correct-bg);
+            border-top: 1px solid var(--correct-border);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .answer-box .correct-ans {
+            font-size: 1.2rem;
+            font-weight: 900;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+
+        .answer-box .explanation { color: #2c3e50; font-size: 0.95rem; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎯 SQLD 1과목 실전 모의고사 (신유형 종합)</h1>
+        <p>복습 및 오답 정리용 <strong>해설 전용 버전</strong>입니다.<br>각 문제 하단의 '해설 보기'를 클릭해 출제 의도를 확인하세요!</p>
+    </div>
+
+    <div id="questions-container">
+        
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q1.</span> 다음 [보기]의 설명에 해당하는 데이터베이스 스키마(Schema)는 무엇인가?</div>
+            <div class="q-box">
+                [보기]<br>
+                - 데이터베이스의 물리적인 저장 구조를 정의한다.<br>
+                - 시스템 프로그래머나 시스템 관리자 관점의 스키마이다.<br>
+                - 데이터의 실제 저장 방법, 인덱스, 레코드 배치 등을 다룬다.
+            </div>
+            <ul class="options">
+                <li>① 외부 스키마 (External Schema)</li>
+                <li>② 개념 스키마 (Conceptual Schema)</li>
+                <li>③ 내부 스키마 (Internal Schema)</li>
+                <li>④ 논리 스키마 (Logical Schema)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ③ 내부 스키마</div>
+                    <div class="explanation">
+                        물리적 하드웨어 장치 입장에서 데이터가 실제로 어떻게 디스크에 저장되는지를 명세한 것은 <b>내부 스키마</b>입니다. (사용자 관점 = 외부, 전체 뼈대 = 개념)
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 상황 제시형</div>
+            <div class="q-text"><span class="q-number">Q2.</span> A 생명보험회사에서 데이터 모델링을 진행 중이다. '고객' 엔터티와 '보험상품' 엔터티가 존재하며, 고객이 보험에 가입하여 수개월 뒤 보험금을 청구하는 '사고접수' 엔터티가 도출되었다. 발생 시점에 따른 분류로 볼 때 '사고접수' 엔터티의 종류는?</div>
+            <ul class="options">
+                <li>① 기본 엔터티 (Fundamental Entity)</li>
+                <li>② 중심 엔터티 (Main Entity)</li>
+                <li>③ 행위 엔터티 (Action Entity)</li>
+                <li>④ 유형 엔터티 (Tangible Entity)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ③ 행위 엔터티</div>
+                    <div class="explanation">
+                        고객이나 보험상품(기본/중심 엔터티)에 의해 파생되어, 보험 사고라는 '비즈니스 이벤트' 발생 시 빈번하게 쌓이는 데이터이므로 <b>행위 엔터티</b>에 해당합니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q3.</span> 데이터 모델링의 '속성(Attribute)'에 대한 설명으로 옳은 것을 [보기]에서 모두 고른 것은?</div>
+            <div class="q-box">
+                [보기]<br>
+                ㄱ. 파생 속성(Derived Attribute)은 데이터 무결성 유지를 위해 가급적 그 수를 최소화하는 것이 바람직하다.<br>
+                ㄴ. 관계형 데이터베이스(RDBMS) 물리 모델링 시, 제1정규화에 의해 다중값 속성(Multi-valued)을 하나의 컬럼 안에 그대로 저장할 수 있다.<br>
+                ㄷ. 기본 속성(Basic Attribute)은 업무 도메인에서 본래부터 추출된 속성을 의미한다.
+            </div>
+            <ul class="options">
+                <li>① ㄱ, ㄴ</li>
+                <li>② ㄱ, ㄷ</li>
+                <li>③ ㄴ, ㄷ</li>
+                <li>④ ㄱ, ㄴ, ㄷ</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② (ㄱ, ㄷ)</div>
+                    <div class="explanation">
+                        ㄴ: RDBMS에서는 제1정규화 원칙에 따라 다중값을 하나의 컬럼에 콤마(,) 등으로 넣지 않고 새로운 1:M 테이블로 <b>분리</b>해야 하므로 틀린 설명입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 바커(Barker) 표기법</div>
+            <div class="q-text"><span class="q-number">Q4.</span> ERD 표기법 중 '바커(Barker) 표기법'에서 관계의 선택사양 중 '선택적 참여(Optional)'를 나타내는 기호는 무엇인가?</div>
+            <ul class="options">
+                <li>① 실선 (Solid Line)</li>
+                <li>② 점선 (Dashed Line)</li>
+                <li>③ 동그라미 (Circle - O)</li>
+                <li>④ 까마귀 발 (Crow's Foot - <)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② 점선 (Dashed Line)</div>
+                    <div class="explanation">
+                        IE 표기법에서는 선택을 'O', 필수를 '|' 로 표현하지만, <b>바커(Barker) 표기법에서는 필수를 실선, 선택을 점선</b>으로 선 자체의 형태로 표현합니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q5.</span> 다음 [보기]의 설명이 가리키는 정규화 단계는 무엇인가?</div>
+            <div class="q-box">
+                [보기]<br>
+                기본키(PK)가 2개 이상의 속성으로 이루어진 복합키일 때 발생한다. 일반 속성이 기본키의 전체가 아닌 <b>일부 속성에만 종속되는 현상(부분 함수 종속성)</b>을 찾아내어 별도의 테이블로 분리하는 과정이다.
+            </div>
+            <ul class="options">
+                <li>① 제1정규형 (1NF)</li>
+                <li>② 제2정규형 (2NF)</li>
+                <li>③ 제3정규형 (3NF)</li>
+                <li>④ BCNF</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② 제2정규형</div>
+                    <div class="explanation">
+                        '부분 함수 종속성'을 제거하는 것은 <b>제2정규형(2NF)</b>입니다. 기본키가 단일 속성이면 2정규화는 생략될 수 있습니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q6.</span> 어느 회사에서 직원을 식별하기 위해 [이름+생년월일+입사일]을 묶어 본질 식별자로 도출하였다. 그러나 길이가 너무 길고 조인 시 성능 저하가 우려되어 이를 대체할 '사원번호(EMP_NO)'라는 속성을 새로 만들어 주식별자로 지정하였다. '사원번호'와 같은 식별자를 무엇이라 하는가?</div>
+            <ul class="options">
+                <li>① 인조 식별자 (Artificial Identifier)</li>
+                <li>② 보조 식별자 (Alternate Identifier)</li>
+                <li>③ 외부 식별자 (Foreign Identifier)</li>
+                <li>④ 복합 식별자 (Composite Identifier)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ① 인조 식별자</div>
+                    <div class="explanation">
+                        본질 식별자가 복잡할 때 시스템적으로 무의미한 일련번호 등을 부여하여 식별자로 삼는 것을 <b>인조 식별자</b>라고 합니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q7.</span> 논리적 데이터 독립성(Logical Data Independence)을 보장하기 위해 데이터베이스 스키마 3단계 구조에서 사용되는 사상(Mapping)은 무엇인가?</div>
+            <ul class="options">
+                <li>① 개념적/내부적 사상 (Conceptual/Internal Mapping)</li>
+                <li>② 물리적 사상 (Physical Mapping)</li>
+                <li>③ 외부적/개념적 사상 (External/Conceptual Mapping)</li>
+                <li>④ 사용자/시스템 사상 (User/System Mapping)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ③ 외부적/개념적 사상</div>
+                    <div class="explanation">
+                        - <b>논리적 독립성</b>: 외부 스키마와 개념 스키마 간의 '외부적/개념적 사상(논리적 사상)'을 통해 보장됩니다.<br>
+                        - <b>물리적 독립성</b>: 개념 스키마와 내부 스키마 간의 '개념적/내부적 사상(물리적 사상)'을 통해 보장됩니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q8.</span> 학교 학사 시스템에서 [교수]와 [강의] 엔터티가 존재한다. "한 명의 교수는 여러 개의 강의를 맡을 수 있지만, 하나의 강의는 오직 한 명의 교수에 의해서만 진행된다"는 업무 규칙이 있을 때 두 엔터티의 관계 차수(Cardinality)는?</div>
+            <ul class="options">
+                <li>① 1 : 1</li>
+                <li>② 1 : M</li>
+                <li>③ M : N</li>
+                <li>④ 관계 없음</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② 1 : M (일대다)</div>
+                    <div class="explanation">
+                        교수(1) 입장에서 강의는 다수(M)이고, 강의(1) 입장에서 교수는 오직 1명이므로 전형적인 <b>1:M 관계</b>입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 절차 나열형</div>
+            <div class="q-text"><span class="q-number">Q9.</span> 다음 중 ERD(Entity Relationship Diagram)를 작성하는 순서로 가장 올바르게 나열된 것은?</div>
+            <ul class="options">
+                <li>① 엔터티 도출 ➔ 엔터티 배치 ➔ 관계 설정 ➔ 관계명 기술 ➔ 관계차수 설정 ➔ 관계선택사양 설정</li>
+                <li>② 엔터티 도출 ➔ 관계 설정 ➔ 엔터티 배치 ➔ 관계차수 설정 ➔ 관계명 기술 ➔ 관계선택사양 설정</li>
+                <li>③ 관계 도출 ➔ 엔터티 배치 ➔ 속성 정의 ➔ 식별자 지정 ➔ 관계차수 설정 ➔ 관계선택사양 설정</li>
+                <li>④ 엔터티 도출 ➔ 엔터티 배치 ➔ 관계명 기술 ➔ 관계차수 설정 ➔ 관계선택사양 설정 ➔ 관계 설정</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ①</div>
+                    <div class="explanation">
+                        ERD 순서는 <b>[도출 -> 배치 -> 선 긋기(설정) -> 이름 적기(명) -> 까마귀 발(차수) -> 동그라미/작대기(선택사양)]</b> 순으로 진행됩니다. (도.배.설.명.차.선)
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q10.</span> 데이터 모델링의 3대 핵심 요소로 바르게 짝지어진 것은?</div>
+            <div class="q-box">
+                - 업무가 관여하는 어떤 것 (Things)<br>
+                - 어떤 것이 가지는 성격 (Attributes)<br>
+                - 어떤 것 간의 연관성 (Relationships)
+            </div>
+            <ul class="options">
+                <li>① 엔터티, 속성, 관계</li>
+                <li>② 튜플, 도메인, 식별자</li>
+                <li>③ 테이블, 칼럼, 조인</li>
+                <li>④ 인스턴스, 스키마, 매핑</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ① 엔터티, 속성, 관계</div>
+                    <div class="explanation">
+                        데이터 모델링을 구성하는 3대 기본 요소는 대상(Entity), 특징(Attribute), 연관성(Relationship)입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q11.</span> 다음 중 '반정규화(Denormalization)'를 수행하는 가장 핵심적인 이유는 무엇인가?</div>
+            <ul class="options">
+                <li>① 데이터 입력 및 수정 시 발생할 수 있는 이상 현상(Anomaly)을 원천 차단하기 위해</li>
+                <li>② 데이터의 논리적 구조를 단순화하여 시스템 확장성을 높이기 위해</li>
+                <li>③ 다수의 테이블 조인(Join)으로 인한 조회(SELECT) 성능 저하를 극복하기 위해</li>
+                <li>④ 물리적 하드웨어의 디스크 용량을 최소화하기 위해</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ③ 조회 성능 향상 및 조인 감소</div>
+                    <div class="explanation">
+                        반정규화는 무결성 훼손과 저장 공간의 낭비를 감수하고서라도 **조회 성능(SELECT)**을 극대화하기 위해 수행하는 기법입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q12.</span> 주식별자(Primary Identifier)가 가져야 할 기본 특성에 대한 설명으로 올바른 것을 [보기]에서 모두 고른 것은?</div>
+            <div class="q-box">
+                [보기]<br>
+                가. 최소성: 주식별자를 구성하는 속성 중 일부를 제외하면 유일하게 식별할 수 없어야 한다.<br>
+                나. 가변성: 업무 환경이 변하면 주식별자의 값도 유연하게 변경될 수 있어야 한다.<br>
+                다. 존재성: 주식별자로 지정된 속성은 반드시 데이터 값(Not Null)을 가져야 한다.
+            </div>
+            <ul class="options">
+                <li>① 가, 나</li>
+                <li>② 가, 다</li>
+                <li>③ 나, 다</li>
+                <li>④ 가, 나, 다</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② (가, 다)</div>
+                    <div class="explanation">
+                        나: 주식별자는 한 번 지정되면 값이 변하지 않아야 하는 <b>비가변성(Invariability)</b>을 가져야 하므로 틀린 설명입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 피터 첸 표기법 심화</div>
+            <div class="q-text"><span class="q-number">Q13.</span> 피터 첸(Peter Chen) ERD 표기법에서, 부모 엔터티에 종속되어 독립적으로 존재할 수 없는 '약한 엔터티(Weak Entity)'를 나타내는 기호는?</div>
+            <ul class="options">
+                <li>① 점선 사각형</li>
+                <li>② 이중 사각형</li>
+                <li>③ 이중 마름모</li>
+                <li>④ 이중 타원</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② 이중 사각형</div>
+                    <div class="explanation">
+                        엔터티는 사각형(ㅁ)인데, 부모 없이 존재할 수 없는 약한 엔터티는 <b>이중 사각형</b>으로 표기합니다. (이중 마름모: 약한 관계, 이중 타원: 다중값 속성)
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q14.</span> "회원 엔터티의 '성별' 속성에는 오직 'M'과 'F' 문자만 1자리 형태로 입력되어야 한다." 데이터 모델링에서 이러한 값의 제한 규칙과 범위를 뜻하는 용어는?</div>
+            <ul class="options">
+                <li>① 튜플 (Tuple)</li>
+                <li>② 인스턴스 (Instance)</li>
+                <li>③ 도메인 (Domain)</li>
+                <li>④ 식별자 (Identifier)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ③ 도메인</div>
+                    <div class="explanation">
+                        특정 속성이 가질 수 있는 데이터 타입, 크기, 그리고 논리적인 값의 허용 범위 제약 조건을 통틀어 <b>도메인(Domain)</b>이라고 합니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q15.</span> 데이터 모델링의 세 가지 관점 중 다음 설명이 가리키는 것은?</div>
+            <div class="q-box">
+                - 데이터 관점(What)과 프로세스 관점(How)이 서로 어떻게 맞물리는지 분석한다.<br>
+                - 업무 처리에 따라 데이터가 생성(C), 조회(R), 수정(U), 삭제(D)되는 변화를 모델링한다.
+            </div>
+            <ul class="options">
+                <li>① 데이터 관점 (Data Perspective)</li>
+                <li>② 프로세스 관점 (Process Perspective)</li>
+                <li>③ 상관 관점 (Interaction Perspective)</li>
+                <li>④ 통합 관점 (Integration Perspective)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ③ 상관 관점 (Interaction)</div>
+                    <div class="explanation">
+                        데이터(명사)와 프로세스(동사)의 <b>상호작용(Interaction)</b>을 분석하는 관점이며, 이를 시각화한 도구가 CRUD 매트릭스입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card is-important">
+            <div class="badge-important">⭐️ 정규화 이상 현상</div>
+            <div class="q-text"><span class="q-number">Q16.</span> 비정규화된 학생-수강 테이블에서 특정 학생의 '수강 취소' 데이터를 지웠더니, 해당 학생의 '이름, 주소, 연락처'와 같은 기본 정보까지 테이블에서 함께 날아가버렸다. 이러한 이상 현상을 무엇이라 하는가?</div>
+            <ul class="options">
+                <li>① 삽입 이상 (Insertion Anomaly)</li>
+                <li>② 삭제 이상 (Deletion Anomaly)</li>
+                <li>③ 갱신 이상 (Update Anomaly)</li>
+                <li>④ 유지 이상 (Maintenance Anomaly)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② 삭제 이상</div>
+                    <div class="explanation">
+                        정규화되지 않은 테이블 구조로 인해, 원하지 않는 정보(학생 개인정보)까지 연쇄적으로 <b>삭제</b>되어 버리는 정보 손실 현상입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q17.</span> 관계(Relationship)의 종류 중 '식별자 관계'와 '비식별자 관계'에 대한 설명으로 옳은 것을 모두 고르시오.</div>
+            <div class="q-box">
+                ㄱ. 식별자 관계: 부모 엔터티의 주식별자가 자식 엔터티의 주식별자로 상속된다.<br>
+                ㄴ. 비식별자 관계: 부모 엔터티의 주식별자가 자식 엔터티의 일반 속성으로 상속된다.<br>
+                ㄷ. 엔터티들을 모두 식별자 관계로만 연결하면, 조인(Join) 시 SQL 구문이 훨씬 단순해지는 장점이 있다.
+            </div>
+            <ul class="options">
+                <li>① ㄱ, ㄴ</li>
+                <li>② ㄱ, ㄷ</li>
+                <li>③ ㄴ, ㄷ</li>
+                <li>④ ㄱ, ㄴ, ㄷ</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ① (ㄱ, ㄴ)</div>
+                    <div class="explanation">
+                        ㄷ: 식별자 관계로만 계속 연결하면 최하위 자식 테이블은 조상들의 PK를 모두 자신의 PK로 가져오게 되어 기본키 컬럼 수가 비대해집니다. 이로 인해 조인 조건에 써야 할 컬럼이 많아져 SQL 구문이 <b>매우 복잡해집니다.</b>
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q18.</span> 다음 설명에 해당하는 논리적 데이터 모델링 기법은 무엇인가?</div>
+            <div class="q-box">
+                '개인고객'과 '법인고객' 엔터티가 있을 때, 두 엔터티가 공통으로 가지는 '고객명, 연락처, 주소'를 상위 엔터티로 빼내고, '주민번호(개인)', '사업자번호(법인)'와 같은 고유 속성만 하위 엔터티에 남겨두어 분할하는 기법.
+            </div>
+            <ul class="options">
+                <li>① 정규화 모델링</li>
+                <li>② 다대다(M:N) 해소 모델링</li>
+                <li>③ 슈퍼타입/서브타입 모델링</li>
+                <li>④ 이력 데이터 모델링</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ③ 슈퍼타입/서브타입 모델링</div>
+                    <div class="explanation">
+                        공통 속성을 위로 올리는 <b>슈퍼타입(Supertype)</b>과, 배타적인 고유 속성을 밑으로 내리는 <b>서브타입(Subtype)</b>으로 계층화하는 설계 기법입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q19.</span> 수강신청 시스템에서 학생 A가 로그인하여 보는 '내 수강 내역 화면'과 교수 B가 로그인하여 보는 '담당 과목 출석부 화면'은 각각 다르다. 이처럼 사용자 관점에서 필요한 데이터베이스의 논리적 부분만을 정의하는 스키마는?</div>
+            <ul class="options">
+                <li>① 외부 스키마</li>
+                <li>② 개념 스키마</li>
+                <li>③ 내부 스키마</li>
+                <li>④ 통합 스키마</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ① 외부 스키마</div>
+                    <div class="explanation">
+                        DB 전체 뼈대(개념 스키마)에서 각 사용자나 앱 단위로 필요한 뷰(View)만 잘라서 보여주는 가장 바깥 계층이 <b>외부 스키마</b>입니다.
+                    </div>
+                </div>
+            </details>
+        </div>
+
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q20.</span> 데이터 모델링 설계 과정에서 유의해야 할 '3대 죄악' 중, [보기]의 상황에 해당하는 것은?</div>
+            <div class="q-box">
+                직원의 주소 정보가 [인사 테이블]과 [급여 테이블] 양쪽에 모두 저장되어 있다. 직원이 이사를 가서 주소를 변경했는데 [인사 테이블]만 업데이트되고 [급여 테이블]은 옛날 주소 그대로 남아 정보의 모순이 발생하였다.
+            </div>
+            <ul class="options">
+                <li>① 비유연성 (Inflexibility)</li>
+                <li>② 비일관성 (Inconsistency)</li>
+                <li>③ 무결성 (Integrity)</li>
+                <li>④ 종속성 (Dependency)</li>
+            </ul>
+            <details>
+                <summary></summary>
+                <div class="answer-box">
+                    <div class="correct-ans">정답: ② 비일관성</div>
+                    <div class="explanation">
+                        데이터 중복으로 인해 업데이트 시 서로 값이 어긋나서 모순이 발생하는 치명적인 상황을 <b>비일관성</b>이라고 합니다. 
+                    </div>
+                </div>
+            </details>
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
