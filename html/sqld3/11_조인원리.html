@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목: 조인 수행 원리 완벽 분석</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #0891b2; /* Cyan */
+            --accent: #e11d48; /* Rose */
+            --success: #16a34a; /* Green */
+            --warning: #f59e0b; /* Amber */
+            --info: #4f46e5; /* Indigo */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: var(--bg-color); color: #334155; line-height: 1.7; padding: 40px 20px; margin: 0; }
+        .container { max-width: 950px; margin: 0 auto; }
+        
+        .header { background: linear-gradient(135deg, #0f172a, #164e63); color: white; padding: 40px; border-radius: 16px; text-align: center; margin-bottom: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; }
+        .header p { font-size: 1.15rem; color: #a5f3fc; margin: 0; }
+        
+        .section-card { background: var(--card-bg); border-radius: 16px; padding: 40px; margin-bottom: 40px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        h2 { color: var(--primary); font-size: 1.6rem; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-top: 0; display: flex; align-items: center; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border); padding: 15px; text-align: left; }
+        .result-table th { background: #f1f5f9; color: var(--primary); text-align: center; font-weight: bold; }
+        
+        .alert-box { background: #fef2f2; border-left: 5px solid var(--accent); padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0; }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+
+        .concept-box { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 1.05rem; margin: 15px 0; line-height: 1.6; border-left: 5px solid var(--secondary); }
+        .code-comment { color: #94a3b8; font-style: italic; }
+        .code-keyword { color: #f472b6; font-weight: bold; }
+        
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-size: 0.85rem; font-weight: bold; margin-bottom: 5px; color: white; }
+        .badge-nl { background: #0891b2; }
+        .badge-sort { background: #f59e0b; }
+        .badge-hash { background: #4f46e5; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>⚙️ 주제 11: 조인 수행 원리</h1>
+        <p>JOIN을 명령했을 때 데이터베이스가 선택하는 3가지 조인 알고리즘.<br>실무 튜닝의 핵심이자 시험 단골 기출입니다.</p>
+    </div>
+
+    <!-- 1. NL Join -->
+    <div class="section-card">
+        <h2 style="before: content: '🔄';">1. NL Join (Nested Loop Join)</h2>
+        <p>자바(Java) 등 프로그래밍 언어에서 사용하는 <strong>이중 for문(중첩 루프)</strong>과 작동 원리가 100% 동일합니다.</p>
+
+        <span class="badge badge-nl">개발자 비유: 이중 for문</span>
+        <div class="concept-box">
+            <span class="code-keyword">for</span> (Student s : studentList) { <span class="code-comment">// 선행 테이블 (Driving Table)</span><br>
+            &nbsp;&nbsp;<span class="code-keyword">for</span> (Enrol e : enrolList) { <span class="code-comment">// 후행 테이블 (Inner Table)</span><br>
+            &nbsp;&nbsp;&nbsp;&nbsp;<span class="code-keyword">if</span> (s.stu_no == e.stu_no) { 결과 집합에 추가; }<br>
+            &nbsp;&nbsp;}<br>
+            }
+        </div>
+
+        <ul style="padding-left: 20px; margin-top: 15px;">
+            <li><strong>동작 방식:</strong> 먼저 엑세스하는 테이블(Driving Table)에서 데이터를 한 건 읽고, 그 값을 들고 다음 테이블(Inner Table)을 뒤져서 조인합니다.</li>
+            <li><strong style="color:var(--accent);">가장 중요한 특징:</strong> <strong>후행 테이블(Inner Table)의 조인 컬럼에 반드시 인덱스(Index)가 있어야 합니다.</strong> (인덱스가 없으면 매번 후행 테이블을 Full Scan 하므로 성능이 지옥으로 갑니다.)</li>
+            <li><strong>적합한 상황:</strong> 온라인 트랜잭션(OLTP) 환경에서 <strong>소량의 데이터를 좁은 범위로 조인할 때</strong> 가장 빠르고 훌륭합니다.</li>
+        </ul>
+    </div>
+
+    <!-- 2. Sort Merge Join -->
+    <div class="section-card">
+        <h2 style="before: content: '📊';">2. Sort Merge Join</h2>
+        <p>인덱스가 없거나, 대량의 데이터를 조인해야 할 때 NL Join의 한계를 극복하기 위해 등장한 방식입니다. <strong>"각자 정렬부터 하고 만나자!"</strong>가 모토입니다.</p>
+
+        <span class="badge badge-sort">개발자 비유: 정렬 후 병합</span>
+        <div class="concept-box" style="border-left-color: var(--warning);">
+            1. 학생 테이블을 '학번' 순서대로 <strong>정렬(Sort)</strong> 해둔다.<br>
+            2. 수강 테이블도 '학번' 순서대로 <strong>정렬(Sort)</strong> 해둔다.<br>
+            3. 양쪽 다 줄을 섰으니, 위에서부터 아래로 한 번만 훑으면서 스윽 <strong>병합(Merge)</strong> 한다!
+        </div>
+
+        <ul style="padding-left: 20px; margin-top: 15px;">
+            <li><strong>특징:</strong> 조인 키를 기준으로 양쪽 테이블을 모두 정렬(Sort)한 후 조인합니다. 인덱스가 없어도 가능합니다.</li>
+            <li><strong>장점:</strong> 동등(<code>=</code>) 조인뿐만 아니라, <strong>크다/작다(<code>></code>, <code><</code>) 같은 Non-Equi Join(범위 조건)에서도 사용할 수 있습니다.</strong></li>
+            <li><strong style="color:var(--accent);">치명적 단점:</strong> 데이터를 <strong>정렬(Sort)하는 데 CPU와 메모리(PGA) 자원을 무지막지하게 소모</strong>합니다. 데이터가 많으면 정렬하다가 시스템이 뻗을 수 있습니다.</li>
+        </ul>
+    </div>
+
+    <!-- 3. Hash Join -->
+    <div class="section-card">
+        <h2 style="before: content: '⚡';">3. Hash Join</h2>
+        <p>현대 데이터베이스에서 <strong>대량의 데이터를 조인할 때 사용하는 가장 강력하고 진보된 방식</strong>입니다.</p>
+
+        <span class="badge badge-hash">개발자 비유: 인메모리 HashMap</span>
+        <div class="concept-box" style="border-left-color: var(--info);">
+            1. 둘 중 <strong>크기가 작은 테이블</strong>을 메모리에 통째로 올려 <strong>해시맵(HashMap)</strong>을 만든다. (Build 단계)<br>
+            2. 큰 테이블을 읽으면서, 방금 만든 해시맵에 키(Key)를 던져서 매칭되는 값을 즉시 뽑아온다. (Probe 단계)
+        </div>
+
+        <ul style="padding-left: 20px; margin-top: 15px;">
+            <li><strong>특징:</strong> 정렬(Sort) 작업이 없어서 빠르고, 해시 함수 덕분에 인덱스가 없어도 빛의 속도로 조인합니다.</li>
+            <li><strong>적합한 상황:</strong> 데이터 웨어하우스(DW)나 대규모 통계/배치 작업 등 <strong>대용량 데이터를 묶을 때 최강의 성능</strong>을 냅니다.</li>
+            <li><strong style="color:var(--accent);">제약 조건 (기출 0순위):</strong> 해시 함수의 특성상 <strong>오직 동등 조인(<code>=</code>)에서만 사용 가능</strong>합니다! 크다/작다(<code>></code>) 조건에서는 절대 해시맵을 쓸 수 없습니다.</li>
+        </ul>
+
+        <div class="alert-box">
+            <h4 style="margin: 0 0 10px 0;">🚨 SQLD 기출 1초 요약표 (시험 직전 암기)</h4>
+            <table class="result-table" style="margin-top: 0; background: white;">
+                <tr>
+                    <th width="33%">NL Join</th>
+                    <th width="33%">Sort Merge Join</th>
+                    <th width="33%">Hash Join</th>
+                </tr>
+                <tr>
+                    <td>- 인덱스 의존도 매우 높음<br>- 소량 데이터에 유리<br>- OLTP 환경 최적</td>
+                    <td>- 정렬(Sort) 부하 발생<br>- 인덱스 불필요<br>- <strong>범위 조인 (>, <) 가능</strong></td>
+                    <td>- 메모리에 해시맵 생성<br>- 대용량 데이터 최강<br>- <strong style="color:var(--accent);">동등(=) 조인만 가능</strong></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

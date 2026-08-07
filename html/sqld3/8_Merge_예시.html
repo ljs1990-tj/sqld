@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 실전: DML과 MERGE 예시</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #2563eb; /* Blue */
+            --accent: #ef4444; /* Red */
+            --success: #10b981; /* Emerald */
+            --warning: #f59e0b; /* Amber */
+            --info: #8b5cf6; /* Purple */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+            line-height: 1.7;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        /* 👑 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #1e3a8a, #1e40af);
+            color: white;
+            padding: 40px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; color: #f8fafc; }
+        .header p { font-size: 1.15rem; color: #bfdbfe; margin: 0; }
+
+        /* 섹션 공통 스타일 */
+        .section-card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+        }
+
+        h2 {
+            color: var(--primary);
+            font-size: 1.6rem;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        /* SQL 코드 박스 */
+        .sql-box {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.05rem;
+            margin: 15px 0;
+            line-height: 1.5;
+            overflow-x: auto;
+            border-left: 5px solid var(--secondary);
+        }
+
+        .keyword { color: #f472b6; font-weight: bold; }
+        .string { color: #a7f3d0; }
+        .comment { color: #94a3b8; font-style: italic; }
+
+        /* 결과 테이블 */
+        .result-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            border: 2px solid var(--border);
+        }
+
+        .result-table th, .result-table td { 
+            border: 1px solid var(--border); 
+            padding: 10px; 
+            text-align: center; 
+        }
+        .result-table th { background-color: #f1f5f9; color: var(--primary); font-weight: bold; }
+
+        /* 에러/성공 콘솔 */
+        .error-console { background: #000000; color: #ef4444; font-family: monospace; padding: 15px; border-radius: 8px; margin-top: 10px; font-weight: bold; border-left: 5px solid #dc2626; }
+        .success-console { background: #000000; color: #10b981; font-family: monospace; padding: 15px; border-radius: 8px; margin-top: 10px; font-weight: bold; border-left: 5px solid #059669; }
+
+        /* 기출 함정 박스 */
+        .alert-box { background: #fef2f2; border-left: 5px solid var(--accent); padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0; }
+        .alert-box h4 { margin: 0 0 10px 0; color: var(--accent); display: flex; align-items: center; }
+        
+        .success-box { background: #f0fdf4; border-left: 5px solid var(--success); padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0; }
+        .success-box h4 { margin: 0 0 10px 0; color: var(--success); display: flex; align-items: center; }
+
+        .update-cell { background-color: #fffbeb; font-weight: bold; color: var(--warning); }
+        .insert-cell { background-color: #ecfdf5; font-weight: bold; color: var(--success); }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>🛠️ 실전 SQL 쿼리: DML과 MERGE</h1>
+        <p>무심코 날린 UPDATE가 불러오는 대참사와<br>INSERT와 UPDATE를 한 번에 처리하는 MERGE 문의 마법을 확인합니다.</p>
+    </div>
+
+    <!-- 1. DML 실행과 에러 상황 -->
+    <div class="section-card">
+        <h2 style="before: content: '🚫';">1. DML 실행 시 자주 만나는 에러 (무결성 위배)</h2>
+        <p>개발자가 쿼리를 작성할 때 테이블 간의 관계(FK)를 고려하지 않으면 뱉어내는 대표적인 에러입니다.</p>
+
+        <div class="alert-box">
+            <h4>❌ 1) 없는 과목을 수강 신청할 때 (FK 위배)</h4>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--accent);">
+                <span class="comment">-- SUBJECT 테이블에 '999(낮잠자기)' 과목은 존재하지 않음!</span><br>
+                <span class="keyword">INSERT INTO</span> enrol (sub_no, stu_no, enr_grade)<br>
+                <span class="keyword">VALUES</span> (<span class="string">'999'</span>, <span class="string">'20153075'</span>, 100);
+            </div>
+            <div class="error-console">
+                ORA-02291: 무결성 제약조건이 위배되었습니다 - 부모 키가 없습니다.<br>
+                (부모 테이블인 SUBJECT에 해당 과목코드가 없어서 삽입 불가)
+            </div>
+        </div>
+
+        <div class="alert-box" style="background: #fffbeb; border-left-color: var(--warning);">
+            <h4 style="color: var(--warning);">⚠️ 2) 실무 대참사: WHERE 절 없는 UPDATE</h4>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--warning);">
+                <span class="comment">-- '옥한빛' 학생의 몸무게만 바꾸려다 WHERE 절을 빼먹음</span><br>
+                <span class="keyword">UPDATE</span> student<br>
+                <span class="keyword">SET</span> stu_weight = 70;
+            </div>
+            <div class="success-console" style="color: #f59e0b; border-left-color: #d97706;">
+                10 행이 업데이트되었습니다.<br>
+                <span style="color: #94a3b8; font-weight: normal;">(전교생 10명의 몸무게가 전부 70kg으로 통일되어버림!)</span>
+            </div>
+            <div class="sql-box" style="margin-top: 10px; border-left-color: var(--success);">
+                <span class="comment">-- 당황하지 말고 DML이므로 즉시 복구(TCL)를 외친다!</span><br>
+                <span class="keyword">ROLLBACK</span>;
+            </div>
+            <p style="margin: 0; font-size: 0.95rem; margin-top: 10px;">➔ DML은 <strong>자동 커밋(Auto Commit)이 되지 않기 때문에</strong>, <code>COMMIT</code>을 하기 전이라면 언제든 <code>ROLLBACK</code>으로 살려낼 수 있습니다. (DDL과의 가장 큰 차이점)</p>
+        </div>
+    </div>
+
+    <!-- 2. MERGE 문의 마법 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🔀';">2. MERGE 문의 마법 (UPSERT)</h2>
+        <p>성적 처리 기간입니다. 교수님이 엑셀 파일(가상 테이블: <code>NEW_DATA</code>)로 성적표를 올렸습니다.<br><strong>목표:</strong> 기존 수강 내역이 있으면 점수를 수정(UPDATE)하고, 수강 내역에 없던 과목이면 새로 추가(INSERT)하라!</p>
+
+        <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+            <div style="flex: 1; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
+                <h4 style="margin-top: 0; text-align: center;">기존 데이터 (ENROL)</h4>
+                <table class="result-table" style="margin-top: 0;">
+                    <tr><th>학번</th><th>과목</th><th>점수</th></tr>
+                    <tr><td>20131001</td><td>101</td><td>80</td></tr>
+                    <tr><td>20131001</td><td>104</td><td>56</td></tr>
+                </table>
+            </div>
+            <div style="flex: 1; background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                <h4 style="margin-top: 0; text-align: center; color: var(--secondary);">입력 데이터 (NEW_DATA)</h4>
+                <table class="result-table" style="margin-top: 0; border-color: #bfdbfe;">
+                    <tr style="background: #dbeafe;"><th>학번</th><th>과목</th><th>점수</th></tr>
+                    <tr><td>20131001</td><td>101</td><td style="color: var(--warning); font-weight: bold;">95</td></tr>
+                    <tr><td>20131001</td><td>107</td><td style="color: var(--success); font-weight: bold;">88</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="sql-box" style="border-left-color: var(--info);">
+            <span class="keyword">MERGE INTO</span> enrol E <span class="comment">-- 데이터가 최종 반영될 타겟</span><br>
+            <span class="keyword">USING</span> new_data N <span class="comment">-- 입력받은 소스 데이터</span><br>
+            <span class="keyword">ON</span> (E.stu_no = N.stu_no <span class="keyword">AND</span> E.sub_no = N.sub_no) <span class="comment">-- 매칭 조건 (학번+과목)</span><br><br>
+            
+            <span class="keyword">WHEN MATCHED THEN</span> <span class="comment">-- (101번 과목은 이미 수강 내역에 존재함!)</span><br>
+            &nbsp;&nbsp;<span class="keyword">UPDATE SET</span> E.enr_grade = N.enr_grade<br><br>
+            
+            <span class="keyword">WHEN NOT MATCHED THEN</span> <span class="comment">-- (107번 과목은 수강 내역에 없음!)</span><br>
+            &nbsp;&nbsp;<span class="keyword">INSERT</span> (sub_no, stu_no, enr_grade)<br>
+            &nbsp;&nbsp;<span class="keyword">VALUES</span> (N.sub_no, N.stu_no, N.enr_grade);
+        </div>
+
+        <div class="success-box">
+            <h4 style="margin: 0 0 10px 0;">🎉 MERGE 실행 후 ENROL 테이블의 최종 상태</h4>
+            <table class="result-table" style="margin-top: 0; background: white;">
+                <tr><th>STU_NO</th><th>SUB_NO</th><th>ENR_GRADE</th><th>비고</th></tr>
+                <tr class="update-cell"><td>20131001</td><td>101</td><td>95</td><td>기존 80점에서 95점으로 <strong>UPDATE</strong> 됨</td></tr>
+                <tr><td>20131001</td><td>104</td><td>56</td><td>매칭되지 않아 변동 없음</td></tr>
+                <tr class="insert-cell"><td>20131001</td><td>107</td><td>88</td><td>새로운 과목 성적으로 <strong>INSERT</strong> 됨</td></tr>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목: DML과 MERGE 완벽 분석</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #2563eb; /* Blue */
+            --accent: #ef4444; /* Red */
+            --success: #16a34a; /* Green */
+            --warning: #f59e0b; /* Amber */
+            --info: #8b5cf6; /* Purple */
+            --bg-color: #f8fafc;
+            --border: #e2e8f0;
+        }
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: var(--bg-color); color: #334155; line-height: 1.6; padding: 30px; }
+        .container { max-width: 950px; margin: 0 auto; }
+        
+        .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.2rem; }
+        
+        .section { background: white; border-radius: 12px; padding: 30px; margin-bottom: 30px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary); border-bottom: 2px solid var(--border); padding-bottom: 10px; margin-top: 0; display: flex; align-items: center; }
+        
+        .sql-box { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 1.05rem; margin: 15px 0; line-height: 1.5; border-left: 5px solid var(--secondary); }
+        .keyword { color: #f472b6; font-weight: bold; }
+        .string { color: #a7f3d0; }
+        .comment { color: #94a3b8; font-style: italic; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border); padding: 12px; text-align: left; }
+        .result-table th { background: #f1f5f9; color: var(--primary); text-align: center; }
+        
+        .alert-box { background: #fef2f2; border-left: 5px solid var(--accent); padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .success-box { background: #f0fdf4; border-left: 5px solid var(--success); padding: 15px; border-radius: 4px; margin: 15px 0; }
+        .highlight-box { background: #f5f3ff; border-left: 5px solid var(--info); padding: 15px; border-radius: 4px; margin: 15px 0; }
+
+        .center { text-align: center !important; }
+        .highlight { background: linear-gradient(180deg, rgba(255,255,255,0) 60%, #fef08a 40%); font-weight: bold; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📝 SQLD 2과목 심화: DML과 MERGE</h1>
+        <p>실무에서 가장 많이 쓰는 데이터 입력(INSERT), 수정(UPDATE), 삭제(DELETE)와<br>시험 단골 손님인 'MERGE(병합)' 및 '트랜잭션(TCL)'의 핵심을 짚어봅니다.</p>
+    </div>
+
+    <!-- 1. 기본 DML -->
+    <div class="section">
+        <h2 style="before: content: '✏️';">1. 기본 DML (INSERT, UPDATE, DELETE)</h2>
+        <p>너무 익숙한 내용이시겠지만, SQLD 시험에서 종종 묻는 <strong>오류 발생 케이스(제약조건 위배)</strong>를 중심으로 점검해 봅니다.</p>
+
+        <div class="sql-box">
+            <span class="comment">-- 1. INSERT (데이터 삽입)</span><br>
+            <span class="keyword">INSERT INTO</span> student (stu_no, stu_name, stu_dept)<br>
+            <span class="keyword">VALUES</span> (<span class="string">'20260001'</span>, <span class="string">'신입생'</span>, <span class="string">'컴퓨터정보'</span>);<br>
+            <span class="comment">-- ➔ 지정하지 않은 학년, 키, 성별 등은 자동으로 NULL로 채워집니다.</span><br><br>
+
+            <span class="comment">-- 2. UPDATE (데이터 수정)</span><br>
+            <span class="keyword">UPDATE</span> student <br>
+            <span class="keyword">SET</span> stu_weight = 70<br>
+            <span class="keyword">WHERE</span> stu_no = <span class="string">'20153075'</span>;<br><br>
+
+            <span class="comment">-- 3. DELETE (데이터 삭제)</span><br>
+            <span class="keyword">DELETE FROM</span> enrol<br>
+            <span class="keyword">WHERE</span> enr_grade < 60;
+        </div>
+
+        <div class="alert-box">
+            <h4 style="margin: 0 0 5px 0; color: var(--accent);">🚨 기출 단골: DML 실행 시 발생하는 에러 원인</h4>
+            <ul style="margin: 0; padding-left: 20px;">
+                <li><strong>INSERT 에러:</strong> <code>student</code> 테이블의 기본키(PK)인 <code>stu_no</code>를 빼먹고 INSERT 하거나, 이미 존재하는 학번을 또 넣으려고 할 때 (무결성 제약조건 위배).</li>
+                <li><strong>UPDATE 대참사:</strong> <code>WHERE</code> 절을 빼먹고 <code>UPDATE student SET stu_weight = 70;</code>을 실행하면, <strong>모든 학생의 몸무게가 70으로 바뀌어버림!</strong> (실무/시험 공통 대참사)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- 2. MERGE 문 -->
+    <div class="section">
+        <h2 style="before: content: '🔀';">2. 기출 0순위: MERGE 문 (UPSERT)</h2>
+        <p>실무에서 배치(Batch) 프로그램을 짤 때 구세주 같은 존재입니다. <strong>"데이터가 이미 있으면 UPDATE 하고, 없으면 새로 INSERT 해라!"</strong>라는 로직을 단 하나의 쿼리로 끝냅니다.</p>
+
+        <div class="highlight-box">
+            <strong>🎓 시나리오:</strong> 교무처에서 새로운 성적 엑셀 파일(가상 테이블: <code>new_enrol_data</code>)을 넘겨주었습니다. 이 데이터를 기존 <code>enrol</code> 테이블에 밀어 넣어야 합니다. (학번과 과목코드가 이미 존재하면 성적만 수정하고, 없으면 신규 수강 내역으로 추가)
+        </div>
+
+        <div class="sql-box" style="border-left-color: var(--info);">
+            <span class="keyword">MERGE INTO</span> enrol E &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">-- 타겟 테이블 (업데이트 될 곳)</span><br>
+            <span class="keyword">USING</span> new_enrol_data N &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">-- 소스 테이블 (새로 들어온 데이터)</span><br>
+            <span class="keyword">ON</span> (E.stu_no = N.stu_no <span class="keyword">AND</span> E.sub_no = N.sub_no) <span class="comment">-- 비교 조건(PK)</span><br><br>
+            
+            <span class="keyword">WHEN MATCHED THEN</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">-- 데이터가 이미 존재한다면?</span><br>
+            &nbsp;&nbsp;<span class="keyword">UPDATE SET</span> E.enr_grade = N.enr_grade<br><br>
+            
+            <span class="keyword">WHEN NOT MATCHED THEN</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment">-- 데이터가 없다면?</span><br>
+            &nbsp;&nbsp;<span class="keyword">INSERT</span> (sub_no, stu_no, enr_grade) <br>
+            &nbsp;&nbsp;<span class="keyword">VALUES</span> (N.sub_no, N.stu_no, N.enr_grade);
+        </div>
+
+        <div class="success-box">
+            <h4 style="margin: 0 0 5px 0; color: var(--success);">💡 시험 문제 푸는 팁</h4>
+            <p style="margin: 0;">객관식 보기로 "MERGE 문은 반드시 UPDATE와 INSERT가 모두 포함되어야 한다"라고 나오면 <strong>거짓(오답)</strong>입니다. 오라클에서는 필요에 따라 <code>UPDATE</code> 절만 쓰거나 <code>INSERT</code> 절만 단독으로 쓰는 것도 허용됩니다.</p>
+        </div>
+    </div>
+
+    <!-- 3. 트랜잭션과 TCL -->
+    <div class="section" style="margin-bottom: 0;">
+        <h2 style="before: content: '🛡️';">3. 트랜잭션 제어어(TCL)와 ACID 특성</h2>
+        <p>DML(INSERT/UPDATE/DELETE)을 실행하면 데이터베이스는 즉시 디스크에 저장하지 않고 임시 메모리에만 올려둡니다. 이를 확정(<code>COMMIT</code>)하거나 취소(<code>ROLLBACK</code>)하는 것을 트랜잭션(Transaction) 제어라고 합니다.</p>
+
+        <h3 style="color: var(--secondary); margin-top: 25px;">[필수 암기] 트랜잭션의 4가지 특성 (ACID)</h3>
+        <p style="font-size: 0.95rem;">단답형 주관식이나 객관식 매칭 문제로 무조건 나오는 4총사입니다.</p>
+        <table class="result-table">
+            <tr><th width="20%">특성 (영문)</th><th width="80%">의미 및 예시</th></tr>
+            <tr>
+                <td class="center"><strong>원자성<br>(Atomicity)</strong></td>
+                <td><strong>"All or Nothing"</strong><br>은행 이체 시, '내 통장 출금'과 '상대 통장 입금'은 무조건 둘 다 성공하거나 둘 다 실패해야 합니다. 절반만 성공할 수 없습니다.</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>일관성<br>(Consistency)</strong></td>
+                <td>트랜잭션 실행 전후의 데이터베이스 상태는 항상 모순 없이 일관되어야 합니다.<br>(예: 잔고는 0원보다 작아질 수 없다는 제약조건을 항상 만족해야 함)</td>
+            </tr>
+            <tr>
+                <td class="center"><strong>고립성<br>(Isolation)</strong></td>
+                <td>트랜잭션이 실행되는 도중에는 <strong>다른 트랜잭션이 끼어들어 데이터를 훔쳐보거나 방해할 수 없습니다.</strong></td>
+            </tr>
+            <tr>
+                <td class="center"><strong>지속성<br>(Durability)</strong></td>
+                <td>트랜잭션이 성공적으로 완료(COMMIT)되었다면, <strong>서버 전원이 나가거나 장애가 발생하더라도 그 결과는 영구적으로 보존</strong>되어야 합니다.</td>
+            </tr>
+        </table>
+    </div>
+
+</div>
+
+</body>
+</html>

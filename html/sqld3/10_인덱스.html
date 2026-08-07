@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목: 인덱스 구조와 원리</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --secondary: #059669; /* Emerald */
+            --accent: #e11d48; /* Rose */
+            --success: #10b981; 
+            --warning: #f59e0b; 
+            --info: #3b82f6; /* Blue */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: var(--bg-color); color: #334155; line-height: 1.7; padding: 40px 20px; margin: 0; }
+        .container { max-width: 950px; margin: 0 auto; }
+        
+        .header { background: linear-gradient(135deg, #064e3b, #047857); color: white; padding: 40px; border-radius: 16px; text-align: center; margin-bottom: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .header h1 { margin: 0 0 15px 0; font-size: 2.3rem; }
+        .header p { font-size: 1.15rem; color: #a7f3d0; margin: 0; }
+        
+        .section-card { background: var(--card-bg); border-radius: 16px; padding: 40px; margin-bottom: 40px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+        h2 { color: var(--primary); font-size: 1.6rem; border-bottom: 2px solid var(--border); padding-bottom: 12px; margin-top: 0; display: flex; align-items: center; }
+        
+        .result-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        .result-table th, .result-table td { border: 1px solid var(--border); padding: 15px; text-align: left; }
+        .result-table th { background: #f1f5f9; color: var(--primary); text-align: center; font-weight: bold; }
+        
+        .alert-box { background: #fef2f2; border-left: 5px solid var(--accent); padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0; }
+        .info-box { background: #eff6ff; border-left: 5px solid var(--info); padding: 20px; border-radius: 0 8px 8px 0; margin: 25px 0; }
+        
+        .tree-box { background: #1e293b; color: #e2e8f0; padding: 20px; border-radius: 10px; font-family: monospace; font-size: 1.05rem; margin: 15px 0; text-align: center; line-height: 1.8; }
+        .node { display: inline-block; background: #334155; padding: 5px 15px; border-radius: 5px; border: 1px solid #475569; margin: 0 10px; }
+        .leaf { background: #059669; color: white; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📖 주제 10: 인덱스(Index)의 구조와 원리</h1>
+        <p>B-Tree 인덱스는 도대체 어떻게 생겼길래 검색이 빠른 걸까?<br>그리고 왜 데이터가 너무 많으면 인덱스를 버리는 게 나을까?</p>
+    </div>
+
+    <!-- 1. B-Tree 구조 -->
+    <div class="section-card">
+        <h2 style="before: content: '🌳';">1. B-Tree (Balanced Tree)의 비밀</h2>
+        <p>오라클(Oracle)을 비롯한 대부분의 관계형 DB가 사용하는 기본 인덱스 구조입니다. 여기서 'B'는 Binary가 아니라 <strong>Balanced(균형 잡힌)</strong>를 뜻합니다. 어디를 찾든 탐색 시간이 동일하도록 트리 깊이를 밸런싱합니다.</p>
+
+        <div class="tree-box">
+            <div style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 5px;">[Root Block - 뿌리]</div>
+            <div class="node">100 ~ 500은 왼쪽 / 501 ~ 999는 오른쪽</div>
+            <div style="font-size: 1.5rem; color: #64748b;">↙ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↘</div>
+            
+            <div style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 5px;">[Branch Block - 가지]</div>
+            <div class="node">100 ~ 300 / 301 ~ 500</div>
+            <span style="display:inline-block; width: 50px;"></span>
+            <div class="node">501 ~ 700 / 701 ~ 999</div>
+            <div style="font-size: 1.5rem; color: #64748b;">↙ &nbsp; ↘ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ↙ &nbsp; ↘</div>
+            
+            <div style="color: #94a3b8; font-size: 0.9rem; margin-bottom: 5px;">[Leaf Block - 잎사귀 (데이터의 실제 주소)]</div>
+            <div class="node leaf">키값(100) + ROWID</div>
+            <div class="node leaf">키값(301) + ROWID</div>
+            <div class="node leaf">키값(501) + ROWID</div>
+            <div class="node leaf">키값(701) + ROWID</div>
+        </div>
+
+        <div class="info-box">
+            <h4 style="margin: 0 0 10px 0; color: var(--info);">💡 핵심 개념: ROWID (로우 아이디)</h4>
+            <p style="margin: 0;">인덱스의 맨 마지막(Leaf Block)에는 정렬된 <strong>'인덱스 키값'</strong>과 함께 <strong>'ROWID'</strong>가 저장되어 있습니다.<br>
+            ROWID는 실제 테이블 데이터가 디스크의 어느 파일, 어느 블록에 저장되어 있는지 알려주는 <strong>'물리적 주소(포인터)'</strong>입니다.</p>
+        </div>
+    </div>
+
+    <!-- 2. 인덱스 스캔의 종류 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔍';">2. 인덱스 스캔의 3가지 방식 (기출 포인트)</h2>
+        <p>실행 계획을 까보면(EXPLAIN PLAN) 자주 등장하는 인덱스 스캔의 종류입니다.</p>
+
+        <table class="result-table">
+            <tr>
+                <th width="30%">스캔 방식</th>
+                <th width="70%">특징 및 발생 조건</th>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><strong>Index Unique Scan</strong><br><span style="font-size:0.85rem; color:#64748b;">(단일 건 스캔)</span></td>
+                <td>가장 빠릅니다. <strong>PK(기본키)나 Unique 인덱스</strong>로 생성된 컬럼을 <code>=</code> (동등 조건)으로 검색할 때 발생합니다.<br>➔ 무조건 데이터가 1건만 존재함을 DB가 확신할 수 있기 때문입니다.</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><strong>Index Range Scan</strong><br><span style="font-size:0.85rem; color:#64748b;">(범위 스캔)</span></td>
+                <td>가장 일반적인 스캔입니다. 인덱스를 타긴 타는데, 수직으로 탐색한 뒤 Leaf Block에서 조건에 맞는 곳까지 <strong>수평으로 쭈욱(Range) 읽어 나갑니다.</strong><br>➔ <code>BETWEEN</code>, <code>LIKE '옥%'</code>, <code>></code> 등을 쓸 때, 또는 중복이 허용된 일반 인덱스를 <code>=</code>로 검색할 때 발생합니다.</td>
+            </tr>
+            <tr>
+                <td style="text-align: center;"><strong>Index Full Scan</strong><br><span style="font-size:0.85rem; color:#64748b;">(전체 스캔)</span></td>
+                <td>테이블은 안 읽고 <strong>인덱스의 Leaf Block만 처음부터 끝까지 다 읽는 방식</strong>입니다.<br>➔ 쿼리에서 요구하는 컬럼들이 모두 인덱스에 포함되어 있어서, 굳이 무거운 테이블까지 갈 필요가 없을 때 발생합니다.</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 3. 인덱스 손익 분기점 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '📉';">3. 무조건 인덱스가 빠를까? (손익 분기점)</h2>
+        <p>이 개념이 시험에서 가장 헷갈리게 나오는 단골 함정입니다. <strong>"인덱스가 무조건 Table Full Scan보다 빠르다?" ➔ ❌ (틀린 보기)</strong></p>
+
+        <div class="alert-box">
+            <h4 style="margin: 0 0 10px 0;">🚨 인덱스의 손익 분기점 (Break-Even Point)</h4>
+            <p style="margin: 0;">
+                인덱스를 타면 <code>인덱스 블록 읽기 ➔ ROWID 확인 ➔ 테이블 블록 읽기</code> 과정을 거치며 <strong>'랜덤 액세스(Random Access)'</strong>가 발생합니다. 데이터를 하나씩 건건이 찔러보는 방식이죠.<br><br>
+                만약 테이블 전체 데이터의 <strong>약 15~20% 이상</strong>을 읽어야 한다면 어떻게 될까요?<br>
+                차라리 인덱스를 포기하고 <strong>Table Full Scan(한 번에 여러 블록을 뭉텅이로 읽어 들이는 Multi-block I/O)</strong>을 하는 것이 디스크 효율 상 훨씬 빠릅니다!
+            </p>
+        </div>
+        
+        <p style="text-align: center; font-weight: bold; color: var(--primary); margin-top: 15px;">
+            ➔ 옵티마이저(CBO)는 이 통계를 계산해서 "아, 추출할 데이터가 너무 많네. 인덱스 버려!" 하고 스스로 Table Full Scan을 선택합니다.
+        </p>
+    </div>
+
+</div>
+
+</body>
+</html>
