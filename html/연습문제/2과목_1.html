@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 실전 모의고사 30제 (채점 버전)</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --important: #e74c3c;
+            --correct: #27ae60;
+            --wrong: #e74c3c;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+            padding-bottom: 150px;
+        }
+
+        .container { max-width: 900px; margin: 0 auto; }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-bottom: 5px solid var(--accent);
+        }
+        .header h1 { color: var(--primary); margin: 0 0 10px 0; font-size: 2.2rem; }
+        .header p { color: #7f8c8d; font-size: 1.1rem; }
+
+        .question-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            border: 1px solid #e0e6ed;
+            position: relative;
+            transition: transform 0.2s;
+        }
+        .question-card:hover { transform: translateY(-3px); box-shadow: 0 8px 15px rgba(0,0,0,0.06); border-color: #bdc3c7; }
+
+        .q-number { font-size: 1.2rem; font-weight: 900; color: var(--accent); margin-right: 10px; }
+        .q-text { font-size: 1.15rem; font-weight: bold; margin-bottom: 15px; color: var(--primary); }
+        .code-box { background: #1e293b; color: #a7f3d0; padding: 10px 15px; border-radius: 6px; font-family: monospace; margin: 10px 0 20px 0; font-size: 0.95rem; }
+
+        .options { list-style: none; padding: 0; margin: 0 0 10px 0; }
+        .options li {
+            background-color: #f8f9fa;
+            border: 1px solid #ecf0f1;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .options.active li:hover { background-color: #eaf2f8; }
+        .options.active li.selected {
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
+        }
+        .options li.correct-answer { background-color: #e8f8f5; color: var(--correct); border: 2px solid var(--correct); font-weight: bold; }
+        .options li.correct-answer::after { content: ' (정답) ✅'; font-weight: bold; }
+        .options li.wrong-answer { background-color: #fdf2e9; color: var(--wrong); border: 2px solid var(--wrong); text-decoration: line-through; opacity: 0.8; }
+        .options li.wrong-answer::after { content: ' ❌'; text-decoration: none; display: inline-block; }
+
+        /* 해설 영역 (채점 후 표시) */
+        .explanation {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 5px solid var(--accent);
+            font-size: 0.95rem;
+            color: #334155;
+        }
+        .exp-badge { display: inline-block; background: var(--accent); color: white; padding: 2px 10px; border-radius: 4px; font-weight: bold; margin-bottom: 10px; font-size: 0.85rem;}
+
+        .grade-panel {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; padding: 20px; box-shadow: 0 -5px 15px rgba(0,0,0,0.1);
+            text-align: center; z-index: 1000; display: flex; justify-content: center; align-items: center; gap: 20px;
+        }
+        .grade-btn {
+            background-color: var(--primary); color: white; border: none; padding: 15px 40px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 30px; cursor: pointer;
+            transition: background-color 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .grade-btn:hover { background-color: #1a252f; }
+        .score-display { font-size: 1.5rem; font-weight: bold; color: var(--primary); display: none; }
+        .score-highlight { color: var(--accent); font-size: 2rem; }
+
+        @media (max-width: 600px) { .grade-panel { flex-direction: column; gap: 10px; padding: 15px; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🎯 SQLD 2과목 실전 모의고사 (Set 2)</h1>
+        <p>함수, GROUP BY, 표준 JOIN, 서브쿼리, 윈도우 함수 등 2과목 핵심 30제입니다.<br>문제를 모두 풀고 하단의 채점 버튼을 누르면 점수와 해설이 공개됩니다!</p>
+    </div>
+
+    <div id="questions-container">
+        <!-- Q1 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q01.</span> 다음 중 테이블의 데이터를 삭제하는 명령어에 대한 설명으로 가장 적절하지 않은 것은?</div>
+            <ul class="options active" data-q="0">
+                <li>① DELETE 문은 로그를 남기며 롤백(ROLLBACK)이 가능하다.</li>
+                <li>② TRUNCATE TABLE 문은 테이블의 구조까지 완전히 삭제한다.</li>
+                <li>③ DROP TABLE 문은 테이블 자체를 삭제하며 복구할 수 없다. (Auto Commit)</li>
+                <li>④ TRUNCATE TABLE은 DELETE보다 시스템 부하가 적고 속도가 빠르다.</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                TRUNCATE TABLE은 테이블의 '데이터'만 모두 삭제하고 저장 공간을 초기화할 뿐, <strong>테이블의 구조(스키마)는 그대로 유지</strong>합니다. 테이블 구조까지 삭제하는 것은 DROP TABLE입니다.
+            </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q02.</span> 트랜잭션의 4가지 특징(ACID) 중, 트랜잭션이 성공적으로 완료되면 그 결과는 시스템에 영구적으로 반영되어야 한다는 성질은?</div>
+            <ul class="options active" data-q="1">
+                <li>① 원자성 (Atomicity)</li>
+                <li>② 일관성 (Consistency)</li>
+                <li>③ 고립성 (Isolation)</li>
+                <li>④ 지속성 (Durability)</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                영구적 반영은 '지속성(Durability)'입니다. 원자성(All or Nothing), 일관성(모순 없음), 고립성(다른 트랜잭션 간섭 불가)도 시험 단골 출제 개념입니다.
+            </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q03.</span> 데이터 무결성을 보장하기 위한 제약조건 중, 기본키(Primary Key)에 대한 설명으로 틀린 것은?</div>
+            <ul class="options active" data-q="2">
+                <li>① 하나의 테이블에는 단 하나의 기본키만 설정할 수 있다.</li>
+                <li>② 기본키는 UNIQUE 제약조건과 NOT NULL 제약조건의 결합이다.</li>
+                <li>③ 기본키를 구성하는 컬럼이 여러 개일 수 있다. (복합키)</li>
+                <li>④ 기본키 값으로는 NULL이 허용되나 중복은 허용되지 않는다.</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                기본키(PK)는 식별자이므로 <strong>절대 NULL 값을 가질 수 없습니다.</strong> (NOT NULL + UNIQUE)
+            </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q04.</span> 다음 SELECT 문의 논리적 수행 순서로 올바른 것은?</div>
+            <div class="code-box">SELECT - FROM - WHERE - GROUP BY - HAVING - ORDER BY</div>
+            <ul class="options active" data-q="3">
+                <li>① FROM ➔ WHERE ➔ GROUP BY ➔ HAVING ➔ SELECT ➔ ORDER BY</li>
+                <li>② FROM ➔ WHERE ➔ SELECT ➔ GROUP BY ➔ HAVING ➔ ORDER BY</li>
+                <li>③ SELECT ➔ FROM ➔ WHERE ➔ GROUP BY ➔ HAVING ➔ ORDER BY</li>
+                <li>④ FROM ➔ GROUP BY ➔ WHERE ➔ HAVING ➔ SELECT ➔ ORDER BY</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                [발췌(FROM) ➔ 필터(WHERE) ➔ 그룹핑(GROUP BY) ➔ 그룹필터(HAVING) ➔ 출력(SELECT) ➔ 정렬(ORDER BY)] 순서입니다. 이 순서를 알아야 SELECT 절에서 만든 ALIAS(별칭)를 WHERE 절에서 쓸 수 없는 이유를 이해할 수 있습니다.
+            </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q05.</span> 다음 연산의 결과 중 NULL이 반환되지 않는 것은? (단, Oracle 기준)</div>
+            <ul class="options active" data-q="4">
+                <li>① SELECT 100 + NULL FROM DUAL;</li>
+                <li>② SELECT 'SQL' || NULL FROM DUAL;</li>
+                <li>③ SELECT GREATEST(10, 20, NULL) FROM DUAL;</li>
+                <li>④ SELECT 100 * NULL FROM DUAL;</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                오라클에서 문자열 연결 연산자(||)에 NULL이 들어가면 빈 문자열로 취급되어 원래 문자열인 'SQL'이 반환됩니다. 숫자 연산(+, -, *, /)에 NULL이 포함되면 결과는 항상 NULL입니다.
+            </div>
+        </div>
+
+        <!-- Q6 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q06.</span> 주어진 두 값이 같으면 NULL을 반환하고, 다르면 첫 번째 값을 반환하는 함수는?</div>
+            <ul class="options active" data-q="5">
+                <li>① NVL(expr1, expr2)</li>
+                <li>② COALESCE(expr1, expr2)</li>
+                <li>③ NULLIF(expr1, expr2)</li>
+                <li>④ NVL2(expr1, expr2, expr3)</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                NULLIF(A, B) 함수는 A와 B가 같으면 NULL, 다르면 A를 반환합니다.
+            </div>
+        </div>
+
+        <!-- Q7 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q07.</span> SELECT COALESCE(NULL, NULL, 'C', 'D') FROM DUAL; 의 결과는?</div>
+            <ul class="options active" data-q="6">
+                <li>① NULL</li>
+                <li>② C</li>
+                <li>③ D</li>
+                <li>④ 에러 발생</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                COALESCE 함수는 괄호 안의 인자들을 순서대로 검사하여 <strong>최초로 NULL이 아닌 값</strong>을 반환합니다.
+            </div>
+        </div>
+
+        <!-- Q8 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q08.</span> 다음 중 ELSE 절이 생략된 CASE WHEN 구문에서, 일치하는 조건이 없을 때 반환되는 값은?</div>
+            <ul class="options active" data-q="7">
+                <li>① 0</li>
+                <li>② FALSE</li>
+                <li>③ 에러 발생</li>
+                <li>④ NULL</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                CASE 문에서 ELSE를 생략하고 조건에 맞는 값이 없으면 기본적으로 NULL을 반환합니다.
+            </div>
+        </div>
+
+        <!-- Q9 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q09.</span> 테이블 T1의 COL1에 데이터 [10, 20, NULL, 30]이 들어있을 때, SELECT AVG(COL1) FROM T1; 의 결과는?</div>
+            <ul class="options active" data-q="8">
+                <li>① 15</li>
+                <li>② 20</li>
+                <li>③ NULL</li>
+                <li>④ 60</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                집계 함수(SUM, AVG, MAX, MIN)는 <strong>NULL 값을 제외하고 연산</strong>합니다. 따라서 (10+20+30) / 3건 = 20이 반환됩니다. (분모가 4가 아님에 주의!)
+            </div>
+        </div>
+
+        <!-- Q10 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q10.</span> COUNT(*)와 COUNT(컬럼명)의 차이점으로 올바른 것은?</div>
+            <ul class="options active" data-q="9">
+                <li>① COUNT(*)는 NULL을 포함한 테이블의 전체 행(Row) 수를 반환한다.</li>
+                <li>② COUNT(컬럼명)은 NULL을 포함하여 해당 컬럼의 행 수를 반환한다.</li>
+                <li>③ 두 함수의 결과는 항상 동일하다.</li>
+                <li>④ COUNT(*)는 집계 함수가 아니며, GROUP BY에 쓸 수 없다.</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                COUNT(*)는 전체 행을 세므로 NULL인 행도 1로 카운트합니다. 반면 COUNT(컬럼명)은 해당 컬럼 값이 NULL인 행은 카운트에서 제외합니다.
+            </div>
+        </div>
+
+        <!-- Q11 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q11.</span> SELECT SUBSTR('SQL_DEVELOPER', 5, 3) FROM DUAL; 의 결과는?</div>
+            <ul class="options active" data-q="10">
+                <li>① SQL</li>
+                <li>② DEV</li>
+                <li>③ VEL</li>
+                <li>④ ELO</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                5번째 문자('D')부터 시작하여 3글자를 자르므로 'DEV'가 출력됩니다. (인덱스는 1부터 시작합니다)
+            </div>
+        </div>
+
+        <!-- Q12 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q12.</span> SELECT ROUND(345.678, 1) FROM DUAL; 의 결과는?</div>
+            <ul class="options active" data-q="11">
+                <li>① 345.6</li>
+                <li>② 345.7</li>
+                <li>③ 346</li>
+                <li>④ 340</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                소수점 첫째 자리까지 표시하라는 뜻이므로, 둘째 자리(7)에서 반올림하여 345.7이 됩니다.
+            </div>
+        </div>
+
+        <!-- Q13 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q13.</span> 오라클(Oracle) 환경에서 현재 날짜와 시스템 시간을 반환하는 키워드는?</div>
+            <ul class="options active" data-q="12">
+                <li>① GETDATE()</li>
+                <li>② NOW()</li>
+                <li>③ SYSDATE</li>
+                <li>④ CURRENT_TIME</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                오라클은 SYSDATE, SQL Server는 GETDATE()를 사용합니다.
+            </div>
+        </div>
+
+        <!-- Q14 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q14.</span> GROUP BY 절에 대한 설명으로 틀린 것은?</div>
+            <ul class="options active" data-q="13">
+                <li>① 그룹핑 기준이 되는 컬럼 외에 다른 일반 컬럼을 SELECT 절에 단독으로 나열할 수 없다.</li>
+                <li>② WHERE 절에서 그룹 함수(SUM, COUNT 등)를 사용하여 필터링할 수 없다.</li>
+                <li>③ ALIAS(별칭)를 사용하여 그룹화 컬럼을 지정할 수 있다.</li>
+                <li>④ 결과 데이터를 필터링하기 위해 HAVING 절을 함께 사용할 수 있다.</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                GROUP BY 절이 SELECT 절보다 먼저 실행되므로, SELECT 절에서 정의한 별칭(ALIAS)을 GROUP BY 절에서 사용할 수 없습니다. (단, ORDER BY에서는 사용 가능)
+            </div>
+        </div>
+
+        <!-- Q15 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q15.</span> 오라클(Oracle) 기준으로 오름차순(ASC) 정렬을 수행할 때, NULL 값의 위치는 어디인가?</div>
+            <ul class="options active" data-q="14">
+                <li>① 무조건 가장 먼저 출력된다. (가장 작은 값 취급)</li>
+                <li>② 무조건 가장 나중에 출력된다. (가장 큰 값 취급)</li>
+                <li>③ 정렬 기준 컬럼의 데이터 타입에 따라 다르다.</li>
+                <li>④ 에러가 발생하여 출력되지 않는다.</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                오라클에서 NULL은 '무한히 큰 값'으로 취급되어 오름차순(ASC) 시 맨 마지막에 출력됩니다. 반대로 SQL Server는 NULL을 최소값으로 취급하여 맨 처음에 출력합니다.
+            </div>
+        </div>
+
+        <!-- Q16 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q16.</span> ANSI 표준 SQL에서 두 테이블 간 조인 조건 컬럼명이 동일할 때, ON 절 대신 간단하게 사용할 수 있는 키워드는?</div>
+            <ul class="options active" data-q="15">
+                <li>① CROSS JOIN</li>
+                <li>② WHERE</li>
+                <li>③ USING</li>
+                <li>④ CONNECT BY</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                조인하려는 두 테이블의 조인 컬럼 이름이 같다면 <code>ON A.DEPTNO = B.DEPTNO</code> 대신 <code>USING (DEPTNO)</code> 로 간단하게 쓸 수 있습니다.
+            </div>
+        </div>
+
+        <!-- Q17 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q17.</span> 테이블 A(기준)에 5건, 테이블 B에 3건의 데이터가 있다. A의 모든 데이터는 출력해야 하며, B에 매칭되는 값이 없으면 NULL로 출력하는 조인 방식은?</div>
+            <ul class="options active" data-q="16">
+                <li>① INNER JOIN</li>
+                <li>② LEFT OUTER JOIN</li>
+                <li>③ RIGHT OUTER JOIN</li>
+                <li>④ CROSS JOIN</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                기준이 되는 왼쪽(A)의 데이터를 모두 유지하는 것은 LEFT OUTER JOIN 입니다.
+            </div>
+        </div>
+
+        <!-- Q18 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q18.</span> 테이블 A의 행 수가 4건, 테이블 B의 행 수가 3건일 때 두 테이블을 CROSS JOIN한 결과 집합의 총 행(Row) 수는?</div>
+            <ul class="options active" data-q="17">
+                <li>① 3건</li>
+                <li>② 4건</li>
+                <li>③ 7건</li>
+                <li>④ 12건</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                CROSS JOIN(카티시안 곱)은 조인 조건이 없을 때 발생하며, 두 테이블의 행 수를 곱한(M × N) 개수만큼 데이터가 생성됩니다. (4 * 3 = 12)
+            </div>
+        </div>
+
+        <!-- Q19 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q19.</span> NATURAL JOIN에 대한 설명으로 가장 적절한 것은?</div>
+            <ul class="options active" data-q="18">
+                <li>① 두 테이블 간에 이름과 데이터 타입이 같은 '모든' 컬럼을 기준으로 자동으로 조인된다.</li>
+                <li>② 명시적으로 ON 절을 반드시 작성해야 한다.</li>
+                <li>③ 조인 컬럼에 테이블 식별자(ALIAS)를 붙일 수 있다. (예: SELECT A.DEPTNO)</li>
+                <li>④ 이름이 같은 컬럼이 없으면 에러가 발생한다.</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                NATURAL JOIN은 이름과 타입이 같은 모든 컬럼을 찾아 자동으로 INNER JOIN 합니다. 또한, 자동으로 기준이 된 조인 컬럼 앞에는 테이블 별칭(Alias)을 붙일 수 없습니다.
+            </div>
+        </div>
+
+        <!-- Q20 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q20.</span> 다음 중 '인라인 뷰(Inline View)'가 위치하는 SQL 절은 어디인가?</div>
+            <ul class="options active" data-q="19">
+                <li>① SELECT 절</li>
+                <li>② FROM 절</li>
+                <li>③ WHERE 절</li>
+                <li>④ HAVING 절</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                FROM 절에 위치하는 서브쿼리를 '인라인 뷰'라고 하며, 동적으로 생성되는 일회성 가상 테이블 역할을 합니다. (SELECT 절에 오면 '스칼라 서브쿼리'입니다.)
+            </div>
+        </div>
+
+        <!-- Q21 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q21.</span> 서브쿼리의 결과가 2건 이상 반환될 때 사용할 수 없는 연산자는?</div>
+            <ul class="options active" data-q="20">
+                <li>① IN</li>
+                <li>② ANY</li>
+                <li>③ =</li>
+                <li>④ EXISTS</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                <code>=</code> 연산자는 단일행(Single Row) 연산자이므로, 서브쿼리의 결과가 2건 이상 나올 때 사용하면 에러(다중행 리턴 오류)가 발생합니다.
+            </div>
+        </div>
+
+        <!-- Q22 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q22.</span> 메인 쿼리의 컬럼이 서브쿼리 내에 사용되어, 메인 쿼리의 각 행마다 서브쿼리가 반복해서 실행되는 구조의 쿼리를 무엇이라 하는가?</div>
+            <ul class="options active" data-q="21">
+                <li>① 스칼라 서브쿼리</li>
+                <li>② 인라인 뷰</li>
+                <li>③ 상관(연관) 서브쿼리</li>
+                <li>④ 다중 컬럼 서브쿼리</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                메인 쿼리와 조인 조건을 맺고 메인 쿼리의 값을 참조하며 도는 서브쿼리를 상관(Correlated) 서브쿼리라고 합니다.
+            </div>
+        </div>
+
+        <!-- Q23 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q23.</span> 두 쿼리의 결과를 합칠 때, 중복된 데이터를 제거하고 결과를 정렬(Sort)하여 반환하는 집합 연산자는?</div>
+            <ul class="options active" data-q="22">
+                <li>① UNION</li>
+                <li>② UNION ALL</li>
+                <li>③ INTERSECT</li>
+                <li>④ MINUS</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                UNION은 중복 제거를 위해 내부적으로 정렬을 수행합니다. UNION ALL은 정렬 및 중복 제거 없이 두 결과를 그대로 합치므로 성능상 훨씬 빠릅니다.
+            </div>
+        </div>
+
+        <!-- Q24 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q24.</span> 집합 연산자(Set Operator)를 사용하기 위한 전제 조건으로 틀린 것은?</div>
+            <ul class="options active" data-q="23">
+                <li>① 두 SELECT 문의 컬럼 개수가 동일해야 한다.</li>
+                <li>② 대응되는 컬럼의 데이터 타입이 상호 호환 가능해야 한다.</li>
+                <li>③ 두 SELECT 문의 컬럼 이름(Alias)이 완벽히 동일해야 한다.</li>
+                <li>④ 최종 결과의 컬럼명은 첫 번째 SELECT 문의 컬럼명을 따른다.</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                집합 연산자 사용 시 컬럼의 개수와 데이터 타입(순서)만 맞으면 되며, <strong>컬럼명(이름)은 달라도 무방합니다.</strong> 결과는 첫 번째 쿼리의 컬럼명을 따라갑니다.
+            </div>
+        </div>
+
+        <!-- Q25 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q25.</span> 첫 번째 쿼리 결과에는 존재하지만 두 번째 쿼리 결과에는 존재하지 않는 데이터를 추출하는 차집합 연산자는? (Oracle 기준)</div>
+            <ul class="options active" data-q="24">
+                <li>① INTERSECT</li>
+                <li>② EXCEPT</li>
+                <li>③ MINUS</li>
+                <li>④ NOT IN</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                차집합을 구할 때 오라클은 <code>MINUS</code>를, SQL Server 등은 <code>EXCEPT</code>를 사용합니다.
+            </div>
+        </div>
+
+        <!-- Q26 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q26.</span> 동점자가 있을 경우 동일한 순위를 부여하고, 그 다음 순위는 건너뛰지 않고 이어서 부여하는(예: 1등, 2등, 2등, 3등) 함수는?</div>
+            <ul class="options active" data-q="25">
+                <li>① RANK()</li>
+                <li>② ROW_NUMBER()</li>
+                <li>③ DENSE_RANK()</li>
+                <li>④ NTILE()</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                RANK는 1, 2, 2, 4 등수를 부여합니다. 촘촘하게 순위를 매기는 DENSE_RANK는 1, 2, 2, 3 등수를 부여합니다. ROW_NUMBER는 무조건 고유한 번호(1, 2, 3, 4)를 매깁니다.
+            </div>
+        </div>
+
+        <!-- Q27 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q27.</span> 윈도우 함수 내에서 데이터들을 특정 기준 컬럼으로 소그룹화(분할)하기 위해 사용하는 구문은?</div>
+            <ul class="options active" data-q="26">
+                <li>① GROUP BY</li>
+                <li>② ORDER BY</li>
+                <li>③ PARTITION BY</li>
+                <li>④ DIVIDE BY</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                윈도우 함수 안에서는 <code>GROUP BY</code> 대신 <code>PARTITION BY</code> 절을 사용하여 소그룹으로 나눕니다. (예: 부서별 급여 순위 산정)
+            </div>
+        </div>
+
+        <!-- Q28 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q28.</span> 현재 읽고 있는 행을 기준으로 파티션 내에서 '이전 행'의 값을 가져올 수 있는 함수는?</div>
+            <ul class="options active" data-q="27">
+                <li>① LEAD()</li>
+                <li>② LAG()</li>
+                <li>③ PREV()</li>
+                <li>④ FIRST_VALUE()</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                이전 행의 값을 가져오는 함수는 LAG(), 다음(이후) 행의 값을 가져오는 함수는 LEAD() 입니다.
+            </div>
+        </div>
+
+        <!-- Q29 -->
+        <div class="question-card">
+            <div class="q-text"><span class="q-number">Q29.</span> 계층형 질의에서 트리(Tree) 전개의 시작 위치(루트 데이터)를 지정하는 구문은?</div>
+            <ul class="options active" data-q="28">
+                <li>① CONNECT BY</li>
+                <li>② PRIOR</li>
+                <li>③ START WITH</li>
+                <li>④ ORDER SIBLINGS BY</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                최상위 부모 노드(루트)를 결정하는 절은 <code>START WITH</code> 입니다. <code>CONNECT BY</code>는 부모와 자식 노드 간의 연결 조건을 명시합니다.
+            </div>
+        </div>
+
+        <!-- Q30 -->
+        <div class="question-card" style="margin-bottom: 0;">
+            <div class="q-text"><span class="q-number">Q30.</span> "CONNECT BY PRIOR 사원번호 = 관리자번호" 조건으로 전개 시 계층 전개 방향으로 올바른 것은?</div>
+            <ul class="options active" data-q="29">
+                <li>① 부모에서 자식으로 전개 (순방향 전개)</li>
+                <li>② 자식에서 부모로 전개 (역방향 전개)</li>
+                <li>③ 형제 노드끼리 전개</li>
+                <li>④ 에러가 발생하여 전개되지 않음</li>
+            </ul>
+            <div class="explanation">
+                <span class="exp-badge">해설</span><br>
+                PRIOR 키워드가 있는 쪽이 '현재(부모) 읽은 행'을 의미합니다. 즉, 방금 읽은 사원의 사원번호가 다음 행의 관리자번호가 되는 구조이므로 위에서 아래로 내려가는 <strong>순방향 전개(Top-Down)</strong>입니다.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- 하단 채점 영역 -->
+<div class="grade-panel">
+    <button id="grade-btn" class="grade-btn">📝 채점하기</button>
+    <div id="score-display" class="score-display">
+        점수: <span id="final-score" class="score-highlight">0</span> 점
+        <span id="score-message" style="font-size:1.1rem; color:#7f8c8d; margin-left:10px;"></span>
+    </div>
+</div>
+
+<script>
+    // 0부터 시작하는 문항별 정답 인덱스 (총 30문제)
+    const correctAnswers = [
+        1, 3, 3, 0, 1, 2, 1, 3, 1, 0,
+        1, 1, 2, 2, 1, 2, 1, 3, 0, 1,
+        2, 2, 0, 2, 2, 2, 2, 1, 2, 0
+    ];
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const optionLists = document.querySelectorAll(".options");
+        const gradeBtn = document.getElementById("grade-btn");
+        const totalQuestions = 30;
+        let isGraded = false;
+
+        optionLists.forEach(ul => {
+            const lis = ul.querySelectorAll("li");
+            lis.forEach((li, index) => {
+                li.addEventListener("click", function() {
+                    if (isGraded) return;
+
+                    lis.forEach(item => item.classList.remove("selected"));
+                    this.classList.add("selected");
+                    ul.setAttribute('data-selected', index);
+                });
+            });
+        });
+
+        gradeBtn.addEventListener("click", function() {
+            if (isGraded) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                setTimeout(() => location.reload(), 500);
+                return;
+            }
+
+            let correctCount = 0;
+            let answeredCount = 0;
+
+            optionLists.forEach((ul, questionIndex) => {
+                const lis = ul.querySelectorAll("li");
+                const selectedIndexStr = ul.getAttribute('data-selected');
+                const correctAnswerIndex = correctAnswers[questionIndex];
+
+                ul.classList.remove("active");
+
+                if (selectedIndexStr !== null) {
+                    answeredCount++;
+                    const selectedIndex = parseInt(selectedIndexStr);
+
+                    if (selectedIndex === correctAnswerIndex) {
+                        lis[selectedIndex].classList.add("correct-answer");
+                        correctCount++;
+                    } else {
+                        lis[selectedIndex].classList.add("wrong-answer");
+                        lis[correctAnswerIndex].classList.add("correct-answer");
+                    }
+                } else {
+                    // 답을 선택하지 않은 경우 정답만 표시
+                    lis[correctAnswerIndex].classList.add("correct-answer");
+                }
+            });
+
+            // 100점 만점으로 환산 (내림 처리)
+            const score = Math.floor((correctCount / totalQuestions) * 100);
+            document.getElementById("final-score").textContent = score;
+            
+            let message = `(총 ${totalQuestions}문제 중 ${correctCount}개 정답) `;
+            if(score >= 80) message += "🎉 훌륭합니다! 2과목 합격 안정권입니다.";
+            else if(score >= 60) message += "👏 합격권입니다! 틀린 문제의 해설을 꼭 확인하세요.";
+            else message += "💪 조금 더 분발합시다! 해설을 보며 개념을 확실히 잡아보세요.";
+            
+            document.getElementById("score-message").textContent = message;
+            document.getElementById("score-display").style.display = "block";
+            
+            // 해설 블록 표시
+            document.querySelectorAll('.explanation').forEach(exp => {
+                exp.style.display = 'block';
+            });
+            
+            gradeBtn.textContent = "🔄 다시 풀기";
+            gradeBtn.style.backgroundColor = "#95a5a6";
+            
+            isGraded = true;
+
+            if (answeredCount < totalQuestions) {
+                alert(`채점이 완료되었습니다.
+풀지 않은 문제가 ${totalQuestions - answeredCount}개 있습니다.`);
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+</script>
+
+</body>
+</html>
