@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 2과목 핵심 요약 노트 (Part 2)</title>
+    <style>
+        :root {
+            --primary: #0369a1; /* Sky Blue Dark */
+            --secondary: #0284c7; /* Light Blue */
+            --accent: #b91c1c; /* Red */
+            --success: #0f766e; /* Teal */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body { 
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif; 
+            background: var(--bg-color); 
+            color: #334155; 
+            line-height: 1.7; 
+            padding: 40px 20px; 
+            margin: 0; 
+        }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .header { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; 
+            padding: 40px; 
+            border-radius: 16px; 
+            text-align: center; 
+            margin-bottom: 40px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.3rem; }
+        .header p { font-size: 1.15rem; color: #bae6fd; margin: 0; }
+        
+        .section-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 35px; 
+            margin-bottom: 30px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+        }
+        
+        h2 { 
+            color: var(--primary); 
+            font-size: 1.5rem; 
+            border-bottom: 2px solid var(--border); 
+            padding-bottom: 12px; 
+            margin-top: 0; 
+            display: flex; 
+            align-items: center; 
+        }
+        
+        .keyword { 
+            font-weight: bold; 
+            color: var(--accent); 
+            background: #fee2e2; 
+            padding: 2px 8px; 
+            border-radius: 6px; 
+            font-size: 0.95rem;
+        }
+        
+        .point {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        th, td { border: 1px solid var(--border); padding: 15px; text-align: left; }
+        th { background: #f0f9ff; color: var(--primary); font-weight: bold; width: 25%; text-align: center;}
+        
+        ul { padding-left: 20px; margin-top: 10px; }
+        li { margin-bottom: 10px; }
+
+        .alert-box { 
+            background: #f0fdfa; 
+            border-left: 5px solid var(--success); 
+            padding: 15px 20px; 
+            border-radius: 0 8px 8px 0; 
+            margin: 20px 0 0 0; 
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>🚀 SQLD 2과목: SQL 기본 및 활용 (Part 2)</h1>
+        <p>JOIN, 서브쿼리, 집합 연산자, 윈도우 함수, 계층형 질의 요약</p>
+    </div>
+
+    <!-- 1. 표준 JOIN -->
+    <div class="section-card">
+        <h2 style="before: content: '🔗';">1. 표준 JOIN (ANSI JOIN)</h2>
+        <ul>
+            <li><strong>INNER JOIN:</strong> 교집합. 두 테이블 간에 조인 조건이 일치하는 데이터만 출력합니다.</li>
+            <li><strong>LEFT OUTER JOIN:</strong> 왼쪽 테이블의 데이터는 무조건 모두 출력하며, 오른쪽 테이블에 매칭되는 값이 없으면 <code>NULL</code>로 채워 출력합니다.</li>
+            <li><strong>CROSS JOIN:</strong> 조인 조건이 없을 때 발생하며 카티시안 곱(Cartesian Product)이라고도 합니다. (A테이블 행 수 × B테이블 행 수)만큼 데이터가 생성됩니다.</li>
+        </ul>
+        <table style="margin-top: 20px;">
+            <tr>
+                <th>NATURAL JOIN</th>
+                <td>두 테이블 간에 <strong>이름과 데이터 타입이 같은 모든 컬럼</strong>을 찾아 자동으로 INNER JOIN 합니다.<br>※ <code>ON</code> 절 사용 불가, 식별자(Alias) 사용 불가</td>
+            </tr>
+            <tr>
+                <th>USING 조건절</th>
+                <td>조인하려는 컬럼명이 같을 때 <code>ON A.ID = B.ID</code> 대신 <code>USING (ID)</code>로 간략하게 사용합니다.<br>※ 식별자(Alias) 사용 불가</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 2. 서브쿼리 -->
+    <div class="section-card">
+        <h2 style="before: content: '📦';">2. 서브쿼리 (Subquery)</h2>
+        <p>서브쿼리가 위치한 곳에 따라 명칭과 역할이 다릅니다.</p>
+        <table>
+            <tr>
+                <th>스칼라 서브쿼리</th>
+                <td><strong>SELECT 절</strong>에 위치. 반드시 <span class="keyword">단일 행, 단일 컬럼</span>의 결과만 반환해야 합니다.</td>
+            </tr>
+            <tr>
+                <th>인라인 뷰 (Inline View)</th>
+                <td><strong>FROM 절</strong>에 위치. 메인 쿼리 실행 시 동적으로 생성되는 일회성 가상 테이블입니다.</td>
+            </tr>
+            <tr>
+                <th>중첩 서브쿼리</th>
+                <td><strong>WHERE, HAVING 절</strong>에 위치. 데이터를 필터링하기 위한 조건으로 사용됩니다.</td>
+            </tr>
+        </table>
+        
+        <div class="alert-box">
+            <strong>💡 상관(연관) 서브쿼리 (Correlated Subquery)</strong><br>
+            메인 쿼리의 컬럼을 서브쿼리 내부로 끌고 들어와 조인 조건 등으로 사용하는 쿼리입니다. 메인 쿼리의 데이터가 한 줄 읽힐 때마다 서브쿼리가 반복해서 실행됩니다.
+        </div>
+        <ul style="margin-top: 15px;">
+            <li><strong>다중행 연산자:</strong> 서브쿼리의 결과가 2건 이상 반환될 때 <code>=, >, <</code> 는 쓸 수 없으며, 반드시 <span class="keyword">IN, ANY, ALL, EXISTS</span>를 사용해야 합니다.</li>
+        </ul>
+    </div>
+
+    <!-- 3. 집합 연산자 -->
+    <div class="section-card">
+        <h2 style="before: content: '🧮';">3. 집합 연산자 (Set Operator)</h2>
+        <p>두 개 이상의 SELECT 쿼리 결과를 하나로 합칩니다. 단, <strong>컬럼의 개수와 데이터 타입이 같아야</strong> 사용 가능합니다. (컬럼명은 달라도 무방)</p>
+        <ul>
+            <li><strong>UNION:</strong> 합집합. 중복된 데이터를 제거하며, 중복 제거를 위해 내부적으로 <span class="keyword">정렬(Sort) 작업이 발생</span>합니다.</li>
+            <li><strong>UNION ALL:</strong> 중복을 포함한 단순 결합. 정렬 작업이 발생하지 않아 UNION보다 <span class="point">수행 속도가 빠릅니다.</span></li>
+            <li><strong>INTERSECT:</strong> 교집합. 두 쿼리 결과에 공통으로 존재하는 데이터만 추출합니다.</li>
+            <li><strong>MINUS / EXCEPT:</strong> 차집합. 첫 번째 쿼리 결과에는 있고, 두 번째 결과에는 없는 데이터를 추출합니다. (오라클은 MINUS, SQL Server는 EXCEPT 사용)</li>
+        </ul>
+    </div>
+
+    <!-- 4. 윈도우 함수 -->
+    <div class="section-card">
+        <h2 style="before: content: '🪟';">4. 윈도우 함수 (Window Function)</h2>
+        <p>행과 행 간의 관계를 쉽게 정의하기 위한 함수입니다. 윈도우 함수 안에서는 <code>GROUP BY</code> 대신 <strong><code>PARTITION BY</code></strong>를 사용하여 소그룹으로 나눕니다.</p>
+        <table>
+            <tr>
+                <th>순위 함수</th>
+                <td>
+                    • <span class="keyword">RANK:</span> 1, 2, 2, 4 (동점자 다음 순위 건너뜀)<br>
+                    • <span class="keyword">DENSE_RANK:</span> 1, 2, 2, 3 (순위를 촘촘하게 이어서 부여)<br>
+                    • <span class="keyword">ROW_NUMBER:</span> 1, 2, 3, 4 (동점자여도 무조건 고유한 일련번호 부여)
+                </td>
+            </tr>
+            <tr>
+                <th>행 참조 함수</th>
+                <td>
+                    • <span class="keyword">LAG:</span> 파티션 내에서 <strong>이전 행</strong>의 값을 가져옴<br>
+                    • <span class="keyword">LEAD:</span> 파티션 내에서 <strong>다음 행</strong>의 값을 가져옴
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 5. 계층형 질의 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🌳';">5. 계층형 질의 (Hierarchical Query)</h2>
+        <p>조직도, 메뉴 트리처럼 부모-자식 관계의 데이터를 계층적으로 풀어내는 오라클 특화 쿼리입니다.</p>
+        <ul>
+            <li><span class="point">START WITH</span>: 트리 전개의 시작점(루트 노드 데이터)을 지정합니다.</li>
+            <li><span class="point">CONNECT BY</span>: 부모와 자식 간의 연결 조건을 명시합니다.
+                <ul>
+                    <li><code>CONNECT BY PRIOR 자식 = 부모</code> : 자식에서 부모로 올라가는 <span class="keyword">역방향 전개 (Bottom-Up)</span></li>
+                    <li><code>CONNECT BY PRIOR 부모 = 자식</code> : 부모에서 자식으로 내려가는 <span class="keyword">순방향 전개 (Top-Down)</span></li>
+                </ul>
+            </li>
+            <li><span class="point">ORDER SIBLINGS BY</span>: 전체 데이터가 아닌 <strong>형제 노드(동일 레벨) 사이에서만</strong> 정렬을 수행합니다.</li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>

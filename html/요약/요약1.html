@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 1과목 핵심 요약 노트</title>
+    <style>
+        :root {
+            --primary: #312e81; /* Deep Indigo */
+            --secondary: #4f46e5; /* Indigo */
+            --accent: #e11d48; /* Rose */
+            --success: #16a34a; /* Green */
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body { 
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif; 
+            background: var(--bg-color); 
+            color: #334155; 
+            line-height: 1.7; 
+            padding: 40px 20px; 
+            margin: 0; 
+        }
+        
+        .container { max-width: 900px; margin: 0 auto; }
+        
+        .header { 
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); 
+            color: white; 
+            padding: 40px; 
+            border-radius: 16px; 
+            text-align: center; 
+            margin-bottom: 40px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); 
+        }
+        .header h1 { margin: 0 0 10px 0; font-size: 2.3rem; }
+        .header p { font-size: 1.15rem; color: #e0e7ff; margin: 0; }
+        
+        .section-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            padding: 35px; 
+            margin-bottom: 30px; 
+            border: 1px solid var(--border); 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03); 
+        }
+        
+        h2 { 
+            color: var(--primary); 
+            font-size: 1.5rem; 
+            border-bottom: 2px solid var(--border); 
+            padding-bottom: 12px; 
+            margin-top: 0; 
+            display: flex; 
+            align-items: center; 
+        }
+        
+        .keyword { 
+            font-weight: bold; 
+            color: var(--accent); 
+            background: #ffe4e6; 
+            padding: 2px 8px; 
+            border-radius: 6px; 
+            font-size: 0.95rem;
+        }
+        
+        .point {
+            font-weight: bold;
+            color: var(--secondary);
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.95rem; }
+        th, td { border: 1px solid var(--border); padding: 15px; text-align: left; }
+        th { background: #f1f5f9; color: var(--primary); font-weight: bold; width: 25%; text-align: center;}
+        
+        ul { padding-left: 20px; margin-top: 10px; }
+        li { margin-bottom: 10px; }
+
+        .alert-box { 
+            background: #fef2f2; 
+            border-left: 5px solid var(--accent); 
+            padding: 15px 20px; 
+            border-radius: 0 8px 8px 0; 
+            margin: 20px 0 0 0; 
+            font-size: 0.95rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>📑 SQLD 1과목: 데이터 모델링의 이해</h1>
+        <p>시험에 무조건 나오는 1과목 핵심 암기 포인트 단권화</p>
+    </div>
+
+    <!-- 1. 데이터 모델링 기본 -->
+    <div class="section-card">
+        <h2 style="before: content: '📐';">1. 데이터 모델링의 특징과 3단계</h2>
+        <ul>
+            <li><strong>데이터 모델링 3대 특징 (필수 암기):</strong> 
+                <span class="keyword">추상화</span>(간략하게 표현), <span class="keyword">단순화</span>(규약에 의해 제한된 표기법 사용), <span class="keyword">명확성</span>(애매모호함 없이 한 가지 의미만)
+            </li>
+            <li><strong>데이터 모델링의 3단계 진행:</strong> 
+                <table>
+                    <tr>
+                        <th>개념적 모델링</th>
+                        <td>전사적 관점, 포괄적, <strong>추상화 수준이 가장 높음</strong>, 핵심 엔터티와 관계 도출 (ERD 창출)</td>
+                    </tr>
+                    <tr>
+                        <th>논리적 모델링</th>
+                        <td><strong>가장 핵심적인 단계</strong>, 정규화 수행, 식별자 확정, M:N 관계 해소, 특정 DBMS에 종속되지 않음</td>
+                    </tr>
+                    <tr>
+                        <th>물리적 모델링</th>
+                        <td>특정 DBMS의 성능, 디스크 저장 구조, 인덱스 등을 고려하여 물리적 스키마 생성</td>
+                    </tr>
+                </table>
+            </li>
+        </ul>
+        <div class="alert-box">
+            <strong>💡 데이터 독립성 (3단계 스키마 구조)</strong><br>
+            • <strong>외부 스키마:</strong> 사용자 관점 (사용자가 보는 뷰)<br>
+            • <strong>개념 스키마:</strong> 통합 관점 (모든 사용자 뷰를 통합한 전체 논리 구조) <br>
+            • <strong>내부 스키마:</strong> 물리적 관점 (실제 데이터가 디스크에 저장되는 물리 구조)<br>
+            ➔ 목적: 논리적 독립성(개념 스키마가 변경되어도 외부 스키마 영향 X)과 물리적 독립성(내부 스키마가 변경되어도 개념 스키마 영향 X) 보장
+        </div>
+    </div>
+
+    <!-- 2. 엔터티, 속성, 관계 -->
+    <div class="section-card">
+        <h2 style="before: content: '🧩';">2. 엔터티(Entity), 속성(Attribute), 관계(Relationship)</h2>
+        <table>
+            <tr>
+                <th>엔터티 (Entity)</th>
+                <td>
+                    업무에 필요하고 관리하고자 하는 정보. 유일한 식별자가 있어야 함.<br>
+                    <strong>반드시 2개 이상의 인스턴스와 2개 이상의 속성</strong>을 가져야 함.<br>
+                    • 발생 시점에 따른 분류: <span class="point">기본 엔터티</span>(사원, 부서) ➔ <span class="point">중심 엔터티</span>(계약, 주문) ➔ <span class="point">행위 엔터티</span>(주문내역, 결제)
+                </td>
+            </tr>
+            <tr>
+                <th>속성 (Attribute)</th>
+                <td>
+                    업무에서 필요로 하는 더 이상 쪼갤 수 없는 최소 의미 단위. (원자성)<br>
+                    • 특성에 따른 분류: <span class="point">기본 속성</span>(이름, 나이) / <span class="point">설계 속성</span>(코드, 일련번호) / <span class="point">파생 속성</span>(계산된 값, 총금액)<br>
+                    • <strong>도메인(Domain):</strong> 각 속성이 가질 수 있는 값의 범위 (데이터 타입, 크기 제약 등)
+                </td>
+            </tr>
+            <tr>
+                <th>관계 (Relationship)</th>
+                <td>
+                    엔터티 간의 연관성.<br>
+                    • <strong>관계의 3대 요소:</strong> <span class="keyword">관계명</span>(명사형/동사형), <span class="keyword">관계차수</span>(1:1, 1:M, M:N), <span class="keyword">관계선택사양</span>(필수/선택)
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- 3. 식별자 -->
+    <div class="section-card">
+        <h2 style="before: content: '🔑';">3. 식별자 (Identifier)</h2>
+        <ul>
+            <li><strong>주식별자(Primary Identifier)의 4대 특징:</strong> 
+                <span class="keyword">유일성</span>(모든 인스턴스를 유일하게 구분), 
+                <span class="keyword">최소성</span>(가장 적은 수의 속성으로 구성), 
+                <span class="keyword">불변성</span>(값이 변하지 않아야 함), 
+                <span class="keyword">존재성</span>(반드시 값이 있어야 함, NOT NULL)
+            </li>
+            <li><strong>식별자의 분류:</strong>
+                <ul>
+                    <li><strong>대표성 여부:</strong> 주식별자 (대표 O) vs 보조식별자 (대표 X, 참조 불가)</li>
+                    <li><strong>생성 여부:</strong> 내부식별자 (스스로 생성) vs 외부식별자 (타 엔터티로부터 받아옴, FK)</li>
+                    <li><strong>속성 수:</strong> 단일식별자 (1개) vs 복합식별자 (2개 이상)</li>
+                    <li><strong>대체 여부:</strong> 본질식별자 (업무에 의해 생성) vs 인조식별자 (인위적으로 만든 일련번호)</li>
+                </ul>
+            </li>
+        </ul>
+        <div class="alert-box">
+            <strong>💡 식별자 관계 vs 비식별자 관계</strong><br>
+            • <strong>식별자 관계 (실선):</strong> 부모의 주식별자를 자식의 '주식별자(PK)'로 상속받음. (강한 연결)<br>
+            • <strong>비식별자 관계 (점선):</strong> 부모의 주식별자를 자식의 '일반 속성(FK)'으로만 상속받음. (약한 연결, 조인 감소 및 독립성 확보 유리)
+        </div>
+    </div>
+
+    <!-- 4. 정규화와 반정규화 -->
+    <div class="section-card" style="margin-bottom: 0;">
+        <h2 style="before: content: '🧹';">4. 정규화(Normalization)와 반정규화</h2>
+        <p>데이터의 이상현상(Anomaly - 삽입/수정/삭제 이상)을 제거하고 무결성을 유지하기 위해 테이블을 쪼개는 과정입니다.</p>
+        <table>
+            <tr>
+                <th>제1정규화 (1NF)</th>
+                <td>모든 속성은 <strong>원자값(단일 값)</strong>을 가져야 한다. (속성의 다중값 분리)</td>
+            </tr>
+            <tr>
+                <th>제2정규화 (2NF)</th>
+                <td>주식별자가 복합키일 때 발생. <strong>부분 함수 종속성을 제거</strong>하고 완전 함수 종속을 이룸.</td>
+            </tr>
+            <tr>
+                <th>제3정규화 (3NF)</th>
+                <td>주식별자가 아닌 일반 속성들 간의 종속 관계인 <strong>이행 함수 종속성(A➔B, B➔C)을 제거</strong>.</td>
+            </tr>
+            <tr>
+                <th>BCNF</th>
+                <td>결정자가 후보키가 아닌 함수 종속성을 제거. (모든 결정자가 후보키여야 함)</td>
+            </tr>
+        </table>
+        
+        <ul style="margin-top: 20px;">
+            <li><strong>반정규화 (Denormalization):</strong> 
+                정규화를 거치면 테이블이 많아져 조인(Join)이 늘어나 조회 성능이 저하될 수 있습니다. 이를 극복하기 위해 <strong>시스템의 성능 향상을 목적으로 데이터 무결성을 일부 포기하고 데이터의 중복을 허용</strong>하는 설계 기법입니다. (테이블 병합, 컬럼 중복, 관계 중복 등)
+            </li>
+        </ul>
+    </div>
+
+</div>
+
+</body>
+</html>
