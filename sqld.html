@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<!-- saved from url=(0014)about:internet -->
+<html lang="ko"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQLD 학습 대시보드</title>
+    <style>
+        :root {
+            --primary: #1e293b;
+            --bg-color: #f1f5f9;
+            --card-bg: #ffffff;
+            --text-dark: #334155;
+            
+            /* 테마 컬러 */
+            --subject1-color: #059669; /* 1과목 (Green) */
+            --subject2-color: #0284c7; /* 2과목 (Blue) */
+            --summary-color: #d97706; /* 요약 (Amber) */
+            --exam-color: #e11d48; /* 문제풀이 (Rose) */
+        }
+
+        body {
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            line-height: 1.6;
+            margin: 0;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 헤더 스타일 */
+        .header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 50px 20px;
+            border-radius: 16px;
+            text-align: center;
+            margin-bottom: 50px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .header h1 { margin: 0 0 15px 0; font-size: 2.5rem; }
+        .header p { font-size: 1.15rem; color: #cbd5e1; margin: 0; font-weight: 300; }
+
+        /* 그리드 레이아웃 */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+        }
+
+        /* 카드 스타일 */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(0,0,0,0.08); }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+        .card-icon { font-size: 2.2rem; margin-right: 15px; }
+        .card-title { font-size: 1.4rem; font-weight: bold; margin: 0; }
+
+        /* 그룹화된 리스트 구역 */
+        .sub-group { margin-bottom: 20px; }
+        .sub-title { font-size: 1rem; font-weight: bold; color: #64748b; margin-bottom: 10px; border-left: 4px solid #cbd5e1; padding-left: 10px; }
+
+        .link-list { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+        
+        .link-item {
+            display: inline-block;
+            text-decoration: none;
+            color: var(--text-dark);
+            background: #f8fafc;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .link-item:hover { color: white; border-color: transparent; }
+
+        /* 테마별 색상 적용 */
+        .card.sub1 .card-title { color: var(--subject1-color); }
+        .card.sub1 .link-item:hover { background-color: var(--subject1-color); }
+
+        .card.sub2 .card-title { color: var(--subject2-color); }
+        .card.sub2 .link-item:hover { background-color: var(--subject2-color); }
+
+        .card.summary .card-title { color: var(--summary-color); }
+        .card.summary .link-item:hover { background-color: var(--summary-color); }
+
+        .card.exam .card-title { color: var(--exam-color); }
+        .card.exam .link-item:hover { background-color: var(--exam-color); }
+
+        .badge-exam { background-color: #fee2e2; color: #b91c1c; border-color: #fca5a5; font-weight: bold; }
+        .badge-answer { background-color: #f1f5f9; color: #475569; font-size: 0.85rem; }
+
+        @media (max-width: 600px) {
+            .grid-container { grid-template-columns: 1fr; }
+            .header h1 { font-size: 2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    
+    <div class="header">
+        <h1>📊 SQLD 자격증 대시보드</h1>
+        <p>데이터 모델링부터 SQL 활용, 모의고사까지 한 번에 학습하세요.</p>
+    </div>
+
+    <div class="grid-container">
+
+        <!-- 1과목 카드 -->
+        <div class="card sub1">
+            <div class="card-header">
+                <div class="card-icon">🏗️</div>
+                <h2 class="card-title">제 1과목 : 데이터 모델링의 이해</h2>
+            </div>
+            
+            <div class="sub-group">
+                <div class="sub-title">1장. 데이터 모델링 기본</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/1_%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%AA%A8%EB%8D%B8%EB%A7%81.html" class="link-item" target="_blank">데이터 모델링</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/2_%EB%AA%A8%EB%8D%B8%EB%A7%81_3%EA%B0%80%EC%A7%80%20%EA%B4%80%EC%A0%90.html" class="link-item" target="_blank">모델링 3가지 관점</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/3_%EB%AA%A8%EB%8D%B8%EB%A7%81_6%EB%8C%80%EA%B8%B0%EB%8A%A5.html" class="link-item" target="_blank">모델링 6대 기능</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/4_%EB%AA%A8%EB%8D%B8%EB%A7%81_3%EB%8B%A8%EA%B3%84%20%EC%9C%A0%EC%9D%98%EC%A0%90.html" class="link-item" target="_blank">모델링 3단계 유의점</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/5_%EB%8D%B0%EC%9D%B4%ED%84%B0%EB%8F%85%EB%A6%BD%EC%84%B1_%EC%8A%A4%ED%82%A4%EB%A7%88.html" class="link-item" target="_blank">데이터 독립성 &amp; 스키마</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/6_ERD%20%ED%91%9C%EA%B8%B0%EB%B2%95_6%EB%8B%A8%EA%B3%84.html" class="link-item" target="_blank">ERD 표기법 6단계</a></li>
+                </ul>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">2장. 엔터티, 속성, 관계, 식별자</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/7_%EC%97%94%ED%84%B0%ED%8B%B0.html" class="link-item" target="_blank">엔터티</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/8_%EC%86%8D%EC%84%B1.html" class="link-item" target="_blank">속성</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/9_%EC%86%8D%EC%84%B1%EC%9D%98%EB%B6%84%EB%A5%98.html" class="link-item" target="_blank">속성의 분류</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/10_%EA%B4%80%EA%B3%84.html" class="link-item" target="_blank">관계</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/11_%EC%8B%9D%EB%B3%84%EC%9E%90.html" class="link-item" target="_blank">식별자</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/SQLD_MM%EA%B4%80%EA%B3%84%ED%95%B4%EC%86%8C.html" class="link-item" target="_blank">M:M 관계 해소</a></li>
+                </ul>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">3장. 정규화 및 트랜잭션 (심화)</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1_%EC%A0%95%EA%B7%9C%ED%99%94.html" class="link-item" target="_blank">정규화</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1_5_%EC%A2%85%EC%86%8D%EC%84%B1.html" class="link-item" target="_blank">종속성</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/2_%EC%9D%B4%EC%83%81%ED%98%84%EC%83%81.html" class="link-item" target="_blank">이상현상</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/3_%EB%B0%98%EC%A0%95%EA%B7%9C%ED%99%94.html" class="link-item" target="_blank">반정규화</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1_%ED%8A%B8%EB%9E%9C%EC%9E%AD%EC%85%98.html" class="link-item" target="_blank">트랜잭션</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 2과목 카드 -->
+        <div class="card sub2">
+            <div class="card-header">
+                <div class="card-icon">💻</div>
+                <h2 class="card-title">제 2과목 : SQL 기본 및 활용</h2>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">1장. SQL 기본 (명령어, 함수)</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/%EB%AA%85%EB%A0%B9%EC%96%B4.html" class="link-item" target="_blank">명령어(DDL/DML)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/%EC%A1%B0%EA%B1%B4%EB%B0%8F%ED%95%A8%EC%88%98.html" class="link-item" target="_blank">조건 및 함수</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/%EA%B7%B8%EB%A3%B9.html" class="link-item" target="_blank">그룹 (Group By)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/7_%EC%A0%9C%EC%95%BD%EC%A1%B0%EA%B1%B4.html" class="link-item" target="_blank">제약조건</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/7_%EC%A0%9C%EC%95%BD%EC%A1%B0%EA%B1%B4_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">제약조건 예시</a></li>
+                </ul>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">2장. 조인, 집합연산자, 서브쿼리</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/1_Join.html" class="link-item" target="_blank">조인 (Join)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/1_Join_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">조인 예시</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/11_%EC%A1%B0%EC%9D%B8%EC%9B%90%EB%A6%AC.html" class="link-item" target="_blank">조인 수행 원리</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/11_%EC%A1%B0%EC%9D%B8%EC%9B%90%EB%A6%AC_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">조인 수행 원리 예시</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/2_%EC%A7%91%ED%95%A9%EC%97%B0%EC%82%B0%EC%9E%90.html" class="link-item" target="_blank">집합연산자</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/2_%EC%A7%91%ED%95%A9%EC%97%B0%EC%82%B0%EC%9E%90_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">집합연산자 예시</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/3_%EC%84%9C%EB%B8%8C%EC%BF%BC%EB%A6%AC.html" class="link-item" target="_blank">서브쿼리</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/3_%EC%84%9C%EB%B8%8C%EC%BF%BC%EB%A6%AC_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">서브쿼리 예시</a></li>
+                </ul>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">3장. 고급 SQL (윈도우, 계층형, Merge)</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/4_%EA%B7%B8%EB%A3%B9%ED%95%A8%EC%88%98.html" class="link-item" target="_blank">그룹함수</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/4_%EA%B7%B8%EB%A3%B9%ED%95%A8%EC%88%98_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">그룹함수 예시</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/5_%EA%B7%B8%EB%A3%B9%ED%95%A8%EC%88%98_%EC%83%81%EC%84%B8.html" class="link-item badge-answer" target="_blank">그룹함수 상세</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/5_%EC%9C%88%EB%8F%84%EC%9A%B0%ED%95%A8%EC%88%98.html" class="link-item" target="_blank">윈도우함수</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/5_%EC%9C%88%EB%8F%84%EC%9A%B0%ED%95%A8%EC%88%98_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">윈도우함수 예시</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/6_%EA%B3%84%EC%B8%B5%ED%98%95%EC%A7%88%EC%9D%98.html" class="link-item" target="_blank">계층형질의</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/6_%EA%B3%84%EC%B8%B5%ED%98%95%EC%A7%88%EC%9D%98_%EC%83%81%EC%84%B8.html" class="link-item badge-answer" target="_blank">계층형질의 상세</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/6_%EA%B3%84%EC%B8%B5%ED%98%95%EC%A7%88%EC%9D%98_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">계층형질의 예시</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/8_Merge.html" class="link-item" target="_blank">Merge 문</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/8_Merge_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">Merge 문 예시</a></li>
+                </ul>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">4장. DB 성능 (옵티마이저, 인덱스)</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/9_%EC%98%B5%ED%8B%B0%EB%A7%88%EC%9D%B4%EC%A0%80.html" class="link-item" target="_blank">옵티마이저</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/9_%EC%98%B5%ED%8B%B0%EB%A7%88%EC%9D%B4%EC%A0%80_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">옵티마이저 예시</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/10_%EC%9D%B8%EB%8D%B1%EC%8A%A4.html" class="link-item" target="_blank">인덱스</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld3/10_%EC%9D%B8%EB%8D%B1%EC%8A%A4_%EC%98%88%EC%8B%9C.html" class="link-item badge-answer" target="_blank">인덱스 예시</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 단권화 요약 노트 카드 -->
+        <div class="card summary">
+            <div class="card-header">
+                <div class="card-icon">📝</div>
+                <h2 class="card-title">핵심 요약 노트</h2>
+            </div>
+            <div class="sub-group">
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1%EA%B3%BC%EB%AA%A9_%ED%95%B5%EC%8B%AC%EC%9A%94%EC%95%BD1.html" class="link-item" target="_blank">1과목 핵심요약 1</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1%EA%B3%BC%EB%AA%A9_%ED%95%B5%EC%8B%AC%EC%9A%94%EC%95%BD2.html" class="link-item" target="_blank">1과목 핵심요약 2</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%9A%94%EC%95%BD/%EC%9A%94%EC%95%BD1.html" class="link-item" target="_blank">전체 요약 노트 1</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%9A%94%EC%95%BD/%EC%9A%94%EC%95%BD2.html" class="link-item" target="_blank">전체 요약 노트 2</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%9A%94%EC%95%BD/%EC%9A%94%EC%95%BD3.html" class="link-item" target="_blank">전체 요약 노트 3</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 실전 문제풀이 및 모의고사 카드 -->
+        <div class="card exam">
+            <div class="card-header">
+                <div class="card-icon">🎯</div>
+                <h2 class="card-title">문제풀이 &amp; 모의고사</h2>
+            </div>
+            
+            <div class="sub-group">
+                <div class="sub-title">1과목 연습문제</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/[1-6]%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C.html" class="link-item" target="_blank">1장 연습문제</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EB%B3%B5%EC%8A%B5%EB%AC%B8%EC%A0%9C(%EB%AA%A8%EB%8D%B8%EB%A7%81-%EA%B4%80%EA%B3%84).html" class="link-item" target="_blank">복습문제 (모델링~관계)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1%EA%B3%BC%EB%AA%A9%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_1set.html" class="link-item badge-exam" target="_blank">1과목 1세트</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1%EA%B3%BC%EB%AA%A9%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_1set_%ED%95%B4%EC%84%A4%EC%B6%94%EA%B0%80.html" class="link-item badge-answer" target="_blank">1과목 1세트 (해설)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1%EA%B3%BC%EB%AA%A9%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_2set.html" class="link-item badge-exam" target="_blank">1과목 2세트</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/1%EA%B3%BC%EB%AA%A9%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_2set_%ED%95%B4%EC%84%A4%EC%B6%94%EA%B0%80.html" class="link-item badge-answer" target="_blank">1과목 2세트 (해설)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld2/99_%EC%B6%94%EA%B0%80%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%ED%95%B4%EC%84%A4%EC%B6%94%EA%B0%80.html" class="link-item badge-answer" target="_blank">추가 연습문제 (해설)</a></li>
+                </ul>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">1과목 고난도 문제</div>
+                <ul class="link-list">
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/1%EA%B3%BC%EB%AA%A9_%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EB%82%9C%EC%9D%B4%EB%8F%84up_1.html" class="link-item badge-exam" target="_blank">난이도 UP 1</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/1%EA%B3%BC%EB%AA%A9_%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EB%82%9C%EC%9D%B4%EB%8F%84up_1_%ED%95%B4%EC%84%A4.html" class="link-item badge-answer" target="_blank">난이도 UP 1 (해설)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/1%EA%B3%BC%EB%AA%A9_%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EB%82%9C%EC%9D%B4%EB%8F%84up_2.html" class="link-item badge-exam" target="_blank">난이도 UP 2</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/1%EA%B3%BC%EB%AA%A9_%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EB%82%9C%EC%9D%B4%EB%8F%84up_2_%ED%95%B4%EC%84%A4.html" class="link-item badge-answer" target="_blank">난이도 UP 2 (해설)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/1%EA%B3%BC%EB%AA%A9_%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EB%82%9C%EC%9D%B4%EB%8F%84up_3.html" class="link-item badge-exam" target="_blank">난이도 UP 3</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/1%EA%B3%BC%EB%AA%A9_%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EB%82%9C%EC%9D%B4%EB%8F%84up_3_%ED%95%B4%EC%84%A4.html" class="link-item badge-answer" target="_blank">난이도 UP 3 (해설)</a></li>
+                </ul>
+            </div>
+
+            <div class="sub-group">
+                <div class="sub-title">2과목 &amp; 종합 모의고사</div>
+                <ul class="link-list">
+                    <!-- 
+					<li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C/2%EA%B3%BC%EB%AA%A9_1.html" class="link-item badge-exam" target="_blank">2과목 연습 1</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/sqld4/1%EA%B3%BC%EB%AA%A9_%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EA%B7%B8%EB%A3%B9%ED%95%A8%EC%88%98%EA%B9%8C%EC%A7%80.html" class="link-item badge-exam" target="_blank">진도별 연습문제 (그룹함수까지)</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C/%EB%AA%A8%EC%9D%98%EA%B3%A0%EC%82%AC1.html" class="link-item badge-exam" style="border: 2px solid #e11d48;" target="_blank">실전 모의고사 1회</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C/%EB%AA%A8%EC%9D%98%EA%B3%A0%EC%82%AC2.html" class="link-item badge-exam" style="border: 2px solid #e11d48;" target="_blank">실전 모의고사 2회</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%8B%9C%ED%97%98_%EC%A0%95%EB%8B%B5.html" class="link-item badge-answer" target="_blank">시험 정답 확인</a></li>
+                    <li><a href="https://ljs1990-tj.github.io/sqld/html/%EC%97%B0%EC%8A%B5%EB%AC%B8%EC%A0%9C_%EC%A0%95%EB%8B%B5%EC%A0%9C%EA%B1%B0.html" class="link-item badge-answer" target="_blank">연습문제 정답제거 (블랭크)</a></li>
+					--!>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+</body></html>
