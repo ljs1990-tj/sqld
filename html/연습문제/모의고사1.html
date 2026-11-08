@@ -433,6 +433,7 @@
                 <span class="exp-badge">상세 해설</span><br>
                 정답은 <strong>② WHERE 절</strong>입니다.
                 <ul>
+                    <li style="color : red;"> [추가] ORDER BY 빼고 다 사용 불가. 문제에서는 순서상 WHERE가 먼저나와서 WHERE를 정답처리했는데 문제가 조금 애매하니 ORDER BY 빼고 다 불가하다고 생각해주시면 좋겠습니다. </li>
                     <li><strong>논리적 수행 순서:</strong> FROM ➔ <strong>WHERE</strong> ➔ GROUP BY ➔ HAVING ➔ SELECT ➔ ORDER BY</li>
                     <li>SELECT 절은 나중에 실행되므로, 그보다 먼저 실행되는 WHERE, GROUP BY, HAVING 절에서는 SELECT의 별칭을 인식할 수 없습니다. 이 중 가장 먼저 실행되는 <strong>WHERE 절</strong>이 대표적인 오답 선지로 자주 출제됩니다. (반면 ORDER BY는 SELECT보다 나중이므로 별칭 사용이 가능합니다.)</li>
                 </ul>
